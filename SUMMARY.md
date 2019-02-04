@@ -13,6 +13,7 @@
    1. restfull
    2. RPC
    3. thrift
+   4. 消息中间件
 
 
 
