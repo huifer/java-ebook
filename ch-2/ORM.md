@@ -175,3 +175,39 @@ Maven插件使用
 
 ![](/ch-2/pic/mapper.png)
 
+利用mybatis-config.xml 链接查询
+
+```java
+package com.wang.mybatis.service;
+
+import com.wang.mybatis.mapper.DouYuMapper;
+import com.wang.mybatis.model.DouYu;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import java.io.InputStream;
+
+/**
+ * 描述:
+ *
+ * @author huifer
+ * @date 2019-02-04
+ */
+public class MyBatis {
+
+    public static void main(String[] args) throws Exception {
+        InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession session = sqlSessionFactory.openSession(true);
+
+        DouYuMapper mapper = session.getMapper(DouYuMapper.class);
+        DouYu douYu = mapper.selectByPrimaryKey(1);
+        System.out.println(douYu);
+        System.out.println();
+    }
+}
+
+```
+
