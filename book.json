@@ -1,3 +1,62 @@
 {
-
+    "title": "Java技术栈",
+    "description": "Java技术栈",
+    "language": "zh-hans",
+    "plugins": [
+        "disqus",
+        "-lunr",
+        "-search",
+        "-highlight",
+        "-livereload",
+        "search-plus",
+        "-sharing",
+        "sharing-plus",
+        "simple-page-toc",
+        "advanced-emoji",
+        "github"
+    ],
+    "pluginsConfig": {
+        "disqus": {
+            "shortName": "huifergitbook"
+        },
+        "simple-page-toc": {
+            "maxDepth": 3,
+            "skipFirstH1": true
+        },
+        "github": {
+            "url": "https://github.com/wt1187982580/"
+        },
+        "sharing": {
+            "douban": false,
+            "facebook": false,
+            "google": true,
+            "hatenaBookmark": false,
+            "instapaper": false,
+            "line": false,
+            "linkedin": false,
+            "messenger": false,
+            "pocket": false,
+            "qq": true,
+            "qzone": false,
+            "stumbleupon": false,
+            "twitter": false,
+            "viber": false,
+            "vk": false,
+            "weibo": true,
+            "whatsapp": false,
+            "all": [
+                "facebook",
+                "google",
+                "twitter",
+                "weibo",
+                "instapaper",
+                "linkedin",
+                "pocket",
+                "stumbleupon"
+            ]
+        },
+        "theme-default": {
+            "showLevel": true
+        }
+    }
 }
