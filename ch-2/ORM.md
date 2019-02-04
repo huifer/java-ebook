@@ -211,3 +211,16 @@ public class MyBatis {
 
 ```
 
+
+
+## 缓存
+
+一级缓存默认开启 sqlSession级别 ， session结束缓存清空
+
+二级缓存Mapper 级别 需要手动开启
+
+​	开启方式
+
+```xml
+useCache="true"
+```
