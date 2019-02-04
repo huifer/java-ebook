@@ -1,15 +1,10 @@
 # 对象关系映射 ORM
 
-常用ORM 框架 **MyBatis** 、 **Hibernate** 
-
-
+常用ORM 框架 **MyBatis** 、 **Hibernate**
 
 # MyBatis & mybatis-generator
 
 使用MyBatis 经常需要编写相关的Mapper.xml所以使用一个 mybatis-generator 来生成 （根据数据库表生成）
-
-
-
 
 依赖
 
@@ -31,8 +26,8 @@
             <version>8.0.13</version>
         </dependency>
 
-	<plugins>
-			<plugin>
+    <plugins>
+            <plugin>
                 <groupId>org.mybatis.generator</groupId>
                 <artifactId>mybatis-generator-maven-plugin</artifactId>
                 <version>1.3.7</version>
@@ -78,7 +73,6 @@
         </resources>
     </build>
 ```
-
 
 JDBC链接配置
 
@@ -175,6 +169,5 @@ generatorConfig 配置
 
 Maven插件使用
 
-
-
+![](/ch-2/pic/mybatis插件.png)
 
