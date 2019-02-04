@@ -2,4 +2,6 @@
 
 
 
-- restful 
+- restful ： 符合REST 架构风格的设计 ，泛指API设计
+- RPC: 远程过程调用
+- 消息中间件： 利用消息队列
