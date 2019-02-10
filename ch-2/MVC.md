@@ -6,8 +6,7 @@
 
 Spring Mvc 请求流程
 
-
-![](/pic/springMvc 流程.png)
+![](/ch-2/pic/springMvc 流程.png)
 
 1. 用户发送请求到DispatchServler
 2. 从Handler mapping 中匹配相关信息的Handler，
