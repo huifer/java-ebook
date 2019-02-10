@@ -208,10 +208,7 @@ public class MyBatis {
         System.out.println();
     }
 }
-
 ```
-
-
 
 ## 缓存
 
@@ -219,15 +216,13 @@ public class MyBatis {
 
 二级缓存Mapper 级别 需要手动开启
 
-​	开启方式
+​    开启方式
 
 ```xml
 useCache="true"
 ```
 
-
-
-## Hibernate
+## 
 
 
 
