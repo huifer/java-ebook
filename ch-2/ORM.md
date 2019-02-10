@@ -224,3 +224,10 @@ public class MyBatis {
 ```xml
 useCache="true"
 ```
+
+
+
+## Hibernate
+
+
+
