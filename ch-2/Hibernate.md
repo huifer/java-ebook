@@ -1593,3 +1593,260 @@ public class HibernateUtils {
   - 外键：外键约束唯一 从家表格中获取
 - 主键对应一对一
 
+---
+
+## 查询方式
+
+### 对象导航查询
+
+根据查询到的结果对象 ，获得相关联的对象， 用于一对多，多对一 关系中的查询
+
+### OID查询
+
+- get()
+- load()
+
+### **HQL查询**
+
+#### 排序查询
+
+```java
+  /**
+     * 排序查询
+     */
+    @Test
+    public void demo3(){
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+//        List<Customer> customer1 = session.createQuery("from Customer  order by cust_id desc ").list();
+        List<Customer> customer1 = session.createQuery("from Customer  order by cust_id asc ").list();
+
+        for (Customer customer : customer1) {
+            System.out.println(customer);
+        }
+        tx.commit();
+    }
+```
+
+
+
+#### 条件查询
+
+```java
+    /**
+     * 条件
+     */
+    @Test
+    public void demo4(){
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction tx = session.beginTransaction();
+        Query query = session.createQuery("from Customer where cust_name = :cust_name ");
+        query.setParameter("cust_name","ac");
+        List<Customer> customer1 = query.list();
+
+        for (Customer customer : customer1) {
+            System.out.println(customer);
+        }
+        tx.commit();
+    }
+```
+
+
+
+#### 投影查询
+
+```java
+    /**
+     * 投影查询
+     */
+    @Test
+    public void demo5() {
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction tx = session.beginTransaction();
+        Query query = session.createQuery("SELECT cust_name,cust_id FROM Customer ");
+        List list = query.list();
+        System.out.println(list);
+
+        // 在实体类中编写构造方法，构造方法参数为你需要查询的属性
+        Query query1 = session.createQuery("SELECT new Customer (cust_name) from Customer ");
+        List list1 = query1.list();
+        System.out.println(list1);
+        tx.commit();
+    }
+```
+
+#### 分组统计
+
+```java
+ /**
+     * 分组查询
+     */
+    @Test
+    public void demo7(){
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = session.createQuery("SELECT l.lkm_name, COUNT(*) FROM LinkMan as l GROUP BY l.customer");
+        List<Object[]> list = query.list();
+        for (Object[] o : list) {
+            System.out.println(Arrays.toString(o));
+        }
+        tx.commit();
+    }
+```
+
+
+
+#### 分页查询
+
+```java
+
+    /**
+     * 分页查询
+     */
+    @Test
+    public void demo6(){
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = session.createQuery("FROM LinkMan ");
+        query.setFirstResult(0);
+        query.setMaxResults(10);
+        List list = query.list();
+        for (Object o : list) {
+            System.out.println(o);
+        }
+        tx.commit();
+    }
+```
+
+#### 多表查询
+
+##### 交叉连接
+
+笛卡尔乘积
+
+select * from table_a ,table_b
+
+
+
+##### 内连接 
+
+inner join  \ join 结果是交集，**公共部分**
+
+- 隐式内连接
+
+  - select from A,B where A.id = B.id;
+
+- 显示内连接
+
+  - select * from A inner join on A.id = B.id;
+
+- 实例
+
+  ```java
+      /**
+       * Hql多表查询
+       */
+      @Test
+      public void demo8(){
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction tx = session.beginTransaction();
+  
+          Query query = session.createQuery("FROM Customer  c inner join c.linkMans");
+          List<Object[]> list = query.list();
+          for (Object [] o : list) {
+              System.out.println(Arrays.toString(o));
+          }
+          System.out.println("--------------------------------");
+          // fetch 会将数据整合
+          Query query1 = session.createQuery("select distinct  c FROM Customer  c inner join fetch c.linkMans");
+          List<Customer> list1 = query1.list();
+          for (Customer o : list1) {
+              System.out.println(o);
+          }
+  
+          tx.commit();
+      }
+  ```
+
+  
+
+##### 外连接
+
+- 左外连接
+
+  - 左侧表的全部数据 + 公共部分
+  - select * from A left join B on A.id = B.id
+
+- 右外连接
+
+  - 右侧表的全部数据 + 公共部分
+  - select * from A right join B on A.id = B.id
+
+- 实例
+
+  ```java
+  @Test
+      public void demo9(){
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction tx = session.beginTransaction();
+  
+          Query query = session.createQuery("FROM Customer  c left join c.linkMans");
+          List<Object[]> list = query.list();
+          for (Object[] o : list) {
+              System.out.println(Arrays.toString(o));
+          }
+  
+          tx.commit();
+      }
+  ```
+
+  
+
+
+
+---
+
+## 优化
+
+### 延迟加载
+
+类延迟加载默认开启
+
+```xml
+    <class name="com.huifer.hibernatebook.bean.Customer" table="cst_customer" lazy="true">
+
+```
+
+### 关联级别延迟加载
+
+```xml
+        <set name="linkMans" lazy="true" >
+```
+
+#### 抓取策略
+
+set 标签 或者 many-to-one 配置   lazy + fetch
+
+- SET
+  - fetch 抓取策略 ，控制sql格式
+    - select : 默认值  发送select 
+    - join ： 发送 迫切左外连接 **lazy 失效**
+    - subselect 发送 子查询关联对象
+  - lazy 延迟加载 ，控制关联对象是否采用延迟
+    - true ： 默认值 采用延迟加载
+    - false ： 不采用延迟加载
+    - extra：用什么发什么
+- many-to-one
+  - fetch 
+    - select ： 默认值
+    - join
+  - lazy
+    - proxy ： 默认值
+    - false
+    - no-proxy **不会使用**
+
+
+
