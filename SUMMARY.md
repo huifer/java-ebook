@@ -9,6 +9,7 @@
    2. [对象关系映射](/ch-2/ORM.md)
    3. [日志](/ch-2/日志.md)
    4. [mvc](/ch-2/MVC.md)
+   5. [Hibernate](/ch-2/Hibernate.md)
 3. [数据通信](/ch-3/README.md)
    1. [restful](/ch-3/restfull.md)
    2. [RPC](/ch-3/RPC.md)
