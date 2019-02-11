@@ -506,12 +506,49 @@ public class HibernateUtils {
 ##### 快照区域
 
 -   org.hibernate.internal.SessionImpl
+     执行get或者其他方法即可获取
+-   session.close() 或 session.clear() 都会清空缓存
+
 ![hibernate一级缓存](/ch-2/pic/hibernate一级缓存.png)
 
 
-#### 二级缓存 
 
-- sessionFactory级别 手动开启
+### 事务
+
+#### 特性
+
+ - 原子性 ：事务不可分割
+ - 一致性 ： 事务执行前后数据一致
+ - 隔离性 ： 事务执行过程中不受其他事务y影响
+ - 持久性 ： 事务结束后数据放在数据库中
+
+#### 读问题
+
+- 脏读 ： 一个事务读取到了另一个没有提交事务的数据
+- 不可重复度：一个事务读到了另一个事务已经提交的update数据，导致前一个事务多次查询结果的不一致
+- 虚读 ： 一个事务读到了另一个事务已经提交的insert数据 致前一个事务多次查询结果的不一致
+
+###### 解决方法
+
+- 设置隔离级别
+
+  - read uncommitter ： 读问题都会发送
+  - read committed ：解决脏读问题
+  - repeatable read ：解决脏读+不可重复读
+  - serializable : 解决所有读问题
+
+- hibernate 设置
+
+  在核心配置中增加
+
+  ```xml
+          <property name="hibernate.connection.isolation">4</property>
+  
+  ```
+
+  
+
+#### 写问题
 
 
 
