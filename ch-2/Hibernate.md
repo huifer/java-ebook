@@ -506,6 +506,7 @@ public class HibernateUtils {
 ##### 快照区域
 
 -   org.hibernate.internal.SessionImpl
+![hibernate一级缓存](/ch-2/pic/hibernate一级缓存.png)
 
 
 #### 二级缓存 
