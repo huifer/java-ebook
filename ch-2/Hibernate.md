@@ -747,7 +747,7 @@ public class HibernateUtils {
 
 #### 实例
 
-**一定要重写 hashCode方法将  主键和 关联字段去除**
+**一定要重写 hashCode方法将 关联字段去除**
 
 一对多配置映射说明
 
@@ -1262,7 +1262,321 @@ public class HibernateUtils {
 
 #### 实例
 
+**一定要重写 hashCode方法将 关联字段去除**
 
+**有一方必须放弃外键维护**，否则出错，一般被动方放弃
+
+- 多对多配置说明
+
+  set标签
+
+  name ： 对方集合属性名 对应实体类属性
+
+  table 使用的中间表表名​	
+
+  key标签
+
+  column ： 当前对象对应中间表的字段
+
+  many-to-many标签
+
+  class：对方类的全路径
+
+  column：对方对象的在中间表中的外键名称
+
+- User
+
+  ```java
+  package com.huifer.hibernatebook.bean;
+  
+  import lombok.AllArgsConstructor;
+  import lombok.Data;
+  import lombok.EqualsAndHashCode;
+  import lombok.NoArgsConstructor;
+  
+  import javax.management.relation.Role;
+  import java.util.HashSet;
+  import java.util.Set;
+  
+  /**
+   * 描述:
+   * 用户
+   *
+   * @author huifer
+   * @date 2019-02-11
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @EqualsAndHashCode
+  public class User {
+      /***
+       *用户id
+       */
+      private Long user_id;
+      /***
+       *用户账号
+       */
+      private String user_code;
+      /***
+       *用户名称
+       */
+      private String user_name;
+      /***
+       *用户密码
+       */
+      private String user_password;
+      /***
+       * 用户状态
+       *1:正常,0:暂停
+       */
+      private String user_state;
+      // 设置多对多关系：表示一个用户选择多个角色？
+      // 放置的是角色的集合
+      /***
+       * 角色
+       */
+      private Set<Role> roles = new HashSet<Role>();
+  }
+  
+  ```
+
+- User.hbm.xml.tld
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+  <hibernate-mapping>
+      <class name="com.huifer.hibernatebook.bean.User" table="sys_user">
+          <!-- 建立OID与主键的映射 -->
+          <id name="user_id" column="user_id">
+              <generator class="native"/>
+          </id>
+          <!-- 建立普通属性与字段映射 -->
+          <property name="user_code" column="user_code"/>
+          <property name="user_name" column="user_name"/>
+          <property name="user_password" column="user_password"/>
+          <property name="user_state" column="user_state"/>
+          <!-- 建立与角色的多对多的映射关系 -->
+          <!--
+              set标签
+                  * name		：对方的集合的属性名称。
+                  * table		：多对多的关系需要使用中间表，放的是中间表的名称。
+           -->
+          <set name="roles" table="sys_user_role" cascade="save-update,delete">
+              <!--
+                  key标签：
+                      * column	：当前的对象对应中间表的外键的名称。
+               -->
+              <key column="user_id"/>
+              <!--
+                  many-to-many标签：
+                      * class		：对方的类的全路径
+                      * column	：对方的对象在中间表中的外键的名称。
+               -->
+              <many-to-many class="com.huifer.hibernatebook.bean.Role" column="role_id"/>
+          </set>
+      </class>
+  </hibernate-mapping>
+  ```
+
+  
+
+- Role
+
+  ```java
+  package com.huifer.hibernatebook.bean;
+  
+  import lombok.AllArgsConstructor;
+  import lombok.Data;
+  import lombok.EqualsAndHashCode;
+  import lombok.NoArgsConstructor;
+  
+  import java.util.HashSet;
+  import java.util.Set;
+  
+  /**
+   * 描述:
+   * 角色
+   *
+   * @author huifer
+   * @date 2019-02-11
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @EqualsAndHashCode
+  public class Role {
+      /***
+       * id
+       */
+      private Long role_id;
+      /***
+       *角色名称
+       */
+      private String role_name;
+      /***
+       *备注
+       */
+      private String role_memo;
+      // 一个角色被多个用户选择：
+      // 放置的是用户的集合
+      /***
+       * user列表
+       */
+      private Set<User> users = new HashSet<User>();
+  
+  }
+  
+  ```
+
+- Role.hbm.xml.tld
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+  <hibernate-mapping>
+      <class name="com.huifer.hibernatebook.bean.Role" table="sys_role">
+          <!-- 建立OID与主键的映射 -->
+          <id name="role_id" column="role_id">
+              <generator class="native"/>
+          </id>
+          <!-- 建立普通属性与字段的映射 -->
+          <property name="role_name" column="role_name"/>
+          <property name="role_memo" column="role_memo"/>
+          <!-- 与用户的多对多的映射关系 -->
+          <!--
+              set标签
+                  * name		：对方的集合的属性名称。
+                  * table		：多对多的关系需要使用中间表，放的是中间表的名称。
+           -->
+          <set name="users" table="sys_user_role" cascade="save-update,delete" inverse="true">
+              <!--
+                  key标签：
+                      * column	：当前的对象对应中间表的外键的名称。
+               -->
+              <key column="role_id"/>
+              <!--
+                  many-to-many标签：
+                      * class		：对方的类的全路径
+                      * column	：对方的对象在中间表中的外键的名称。
+               -->
+              <many-to-many class="com.huifer.hibernatebook.bean.User" column="user_id"/>
+          </set>
+      </class>
+  </hibernate-mapping>
+  ```
+
+- 测试类
+
+  ```java
+  package com.huifer.hibernatebook.bean;
+  
+  import com.huifer.hibernatebook.utils.HibernateUtils;
+  import org.hibernate.Session;
+  import org.hibernate.Transaction;
+  import org.junit.Test;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-02-11
+   */
+  public class ManyToManyTest {
+      @Test
+      /**
+       * 保存多条记录：保存多个用户和角色
+       */
+      public void demo1() {
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction tx = session.beginTransaction();
+  
+          // 创建2个用户
+          User user1 = new User();
+          user1.setUser_name("用户1");
+          User user2 = new User();
+          user2.setUser_name("用户2");
+  
+          // 创建3个角色
+          Role role1 = new Role();
+          role1.setRole_name("角色A");
+          Role role2 = new Role();
+          role2.setRole_name("角色B");
+          Role role3 = new Role();
+          role3.setRole_name("角色C");
+  
+          // 设置双向的关联关系:
+          user1.getRoles().add(role1);
+          user1.getRoles().add(role1);
+          user1.getRoles().add(role2);
+          user2.getRoles().add(role2);
+          user2.getRoles().add(role3);
+          role1.getUsers().add(user1);
+          role2.getUsers().add(user1);
+          role2.getUsers().add(user2);
+          role3.getUsers().add(user2);
+  
+          // 保存操作:多对多建立了双向的关系必须有一方放弃外键维护。
+          // 一般是被动方放弃外键维护权。
+          session.save(user1);
+          session.save(user2);
+          session.save(role1);
+          session.save(role2);
+          session.save(role3);
+  
+          tx.commit();
+      }
+  
+      /**
+       * 给用户选角色
+       */
+      @Test
+      public void demo2(){
+          demo1();
+  
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction tx = session.beginTransaction();
+  
+          // 给1号用户多选2号角色
+          // 查询1号用户
+          User user  = session.get(User.class, 1L);
+          // 查询2号角色
+          Role role = session.get(Role.class, 2L);
+          user.getRoles().add(role);
+  
+          tx.commit();
+      }
+  
+      /***
+       *给用户改选角色
+       */
+      @Test
+      public void demo3(){
+          demo1();
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction tx = session.beginTransaction();
+  
+          // 给2号用户将原有的2号角色改为3号角色
+          // 查询2号用户
+          User user  = session.get(User.class, 2L);
+          // 查询2号角色
+          Role role2 = session.get(Role.class, 2L);
+          Role role3 = session.get(Role.class, 3L);
+          user.getRoles().remove(role2);
+          user.getRoles().add(role3);
+  
+          tx.commit();
+      }
+  }
+  
+  ```
+
+  
 
 ### 一对一关系
 
