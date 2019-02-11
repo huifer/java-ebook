@@ -601,7 +601,7 @@ public class HibernateUtils {
 ### query 
 
 ```java
-@Test
+	@Test
     public void query() {
 
         Session session = HibernateUtils.getCurrentSession();
@@ -635,7 +635,7 @@ public class HibernateUtils {
 ### criteria
 
 ```java
-@Test
+	@Test
     public void criteria() {
 
         Session session = HibernateUtils.getCurrentSession();
