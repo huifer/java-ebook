@@ -235,3 +235,169 @@ public class CustomerTest {
 
 ```
 
+## 映射配置
+
+class标签
+
+- name ： 类的全路径
+
+- table ： 表名
+
+- catalog : 数据库名
+
+
+
+ id标签主键标签
+
+- name ： 类中的属性
+- column：表中的字段
+- length：长度
+- type：类型
+
+property字段属性
+
+- name：类中的属性
+- column：表中的字段
+- length：长度
+- type：类型
+- not-null：不为空
+- unique：唯一
+
+## class
+
+### org.hibernate.cfg.Configuration
+
+ Configuration hibernate核心配置文件
+
+- hibernate.properties
+  - 通过  new Configuration() 即可获取
+- hibernate.cfg.xml  **常用**
+  - 通过new Configuration().configure(); 获取
+
+### org.hibernate.SessionFactory
+
+ cfg.buildSessionFactory();获取一个项目只要一个即可
+
+### org.hibernate.Session
+
+类似jdbc Connection 连接对象 不是线程安全的 
+
+- 保存方法 返回数据库 id
+
+  - ``` java
+    Serializable save(Object var1);
+    ```
+
+- 查询方法
+
+  - ```java
+    <T> T get(Class<T> var1, Serializable var2);
+    
+    ```
+
+  - ```java
+    <T> T load(Class<T> var1, Serializable var2);
+    ```
+
+    **get方法立即执行，直接发送，返回的是对象本身**
+
+    **load方法是延时加载 ， 只有使用对象才发送，返回的是代理对象**
+
+    区别列表
+
+    | 行为           | get            | load                        |
+    | -------------- | -------------- | --------------------------- |
+    | 运行到当前代码 | 立即执行并发送 | 不发送，直到使用对象        |
+    | 返回值         | 真实对象       | 代理对象                    |
+    | 查询不存在值   | 返回null       | 返回ObjectNotFoundException |
+
+- 修改方法
+
+  - ```java
+    void update(Object var1);
+    ```
+
+    **先查询在修改**
+
+- 删除方法
+
+  - ```java
+    void delete(Object var1);
+    ```
+
+    **先查询在删除**
+
+- 保存或更新
+
+  - ```java
+    void saveOrUpdate(Object var1);
+    ```
+
+- 查询
+
+  - ```java
+    org.hibernate.query.Query createQuery(String var1);
+    ```
+
+### org.hibernate.Transaction 
+
+- commit() 提交
+- rollback() 回滚 
+
+## 提取工具
+
+```java
+package com.huifer.hibernatebook.utils;
+
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+/**
+ * 描述:
+ * hibernate工具
+ *
+ * @author huifer
+ * @date 2019-02-11
+ */
+public class HibernateUtils {
+
+    public static final Configuration HIBERNATE_CFG;
+    public static final SessionFactory HIBERNATE_SESSIONFACTORY;
+
+    static
+    {
+        HIBERNATE_CFG = new Configuration().configure();
+        HIBERNATE_SESSIONFACTORY = HIBERNATE_CFG.buildSessionFactory();
+    }
+
+
+    public static Session getHibernateSession(){
+        return HIBERNATE_SESSIONFACTORY.openSession();
+    }
+
+}
+
+
+```
+
+
+
+- 测试
+
+  ```java
+    @Test
+      public void hibernateUtilsTest() {
+          Session hibernateSession = HibernateUtils.getHibernateSession();
+          Transaction transaction = hibernateSession.beginTransaction();
+          Customer customer = new Customer();
+          customer.setCust_name("hibernateUtilsTest测试数据");
+          hibernateSession.save(customer);
+          transaction.commit();
+          // 资源释放
+          hibernateSession.close();
+      }
+  ```
+
+  
