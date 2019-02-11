@@ -1844,7 +1844,7 @@ set 标签 或者 many-to-one 配置   lazy + fetch
     - select ： 默认值
     - join
   - lazy
-    - proxy ： 默认值
+    - proxy ： 默认值 取决于 一方的class的 lazy
     - false
     - no-proxy **不会使用**
 
