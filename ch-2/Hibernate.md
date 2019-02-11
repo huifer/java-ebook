@@ -400,7 +400,10 @@ public class HibernateUtils {
       }
   ```
 
-  
+
+----
+
+
 
 ## 持久化编写
 
@@ -654,6 +657,625 @@ public class HibernateUtils {
     }
 ```
 
+----
 
 
+
+## 数据表之间关系
+
+### 一对多关系
+
+- 一个客户对应多个联系人
+
+#### 建表原则
+
+ - 客户表
+    - 客户id
+    - 客户名称
+ - 联系人
+    - 联系人id
+    - 联系人名称
+    - 外键 ： 客户id
+ - **在多的一方写   一的一方的主键id**
+
+#### 级联操作
+
+##### 级联保存或更新
+
+- 一方配置
+
+```xml
+<set name="linkMans" cascade="save-update" inverse="true">
+```
+
+- 多方配置
+
+```xml
+        <many-to-one name="customer" cascade="save-update" class="com.huifer.hibernatebook.bean.Customer" column="lkm_cust_id"/>
+
+```
+
+**问题**
+
+- 如果多方 一方 都写了 cascade 会出现数据变少问题 详见demo4
+
+  ```java
+     /**
+       * 对象导航
+       * 双方都配置 cascade
+       */
+      @Test
+      public void demo4() {
+  
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+          Customer customer = new Customer();
+          customer.setCust_name("cust01");
+  
+          LinkMan linkMan1 = new LinkMan();
+          linkMan1.setLkm_name("LM1");
+          LinkMan linkMan2 = new LinkMan();
+          linkMan2.setLkm_name("LM2");
+          LinkMan linkMan3 = new LinkMan();
+          linkMan3.setLkm_name("LM3");
+  
+          linkMan1.setCustomer(customer);
+          customer.getLinkMans().add(linkMan2);
+          customer.getLinkMans().add(linkMan3);
+  
+          // 双方都设置了cascade
+  //		session.save(linkMan1); // 发送几条insert语句  4条
+  //		session.save(customer); // 发送几条insert语句  3条
+          session.save(linkMan2); // 发送几条insert语句  1条
+          transaction.commit();
+  
+      }
+  ```
+
+  
+
+##### 级联删除
+
+- 一方
+
+  ```xml
+          <set name="linkMans" cascade="save-update,delete" inverse="true">
+  
+  ```
+
+  一方放弃外键维护权 inverse 不重复提交sql
+
+#### 实例
+
+**一定要重写 hashCode方法将  主键和 关联字段去除**
+
+一对多配置映射说明
+
+- 在一方配置
+
+  set标签
+
+  name ： 多方的集合属性和实体类中字段对应
+
+  cascade： 级联
+
+  inverser ：放弃外键维护权
+
+  key 标签
+
+  column ： 填写多方的外键名称
+
+  one-to-many 标签
+
+  class ： 多方全路径
+
+- 在多方配置
+
+  many-to-one 标签 
+
+  name : 一方的属性名称 和实体类对应
+
+  class ： 一方全路径
+
+  column ： 填写多方的外键名称
+
+- Customer
+
+  ```java
+  
+  package com.huifer.hibernatebook.bean;
+  
+  import lombok.AllArgsConstructor;
+  import lombok.Data;
+  import lombok.NoArgsConstructor;
+  
+  import java.util.HashSet;
+  import java.util.Objects;
+  import java.util.Set;
+  
+  /**
+   * 描述:
+   * 客户表
+   *
+   * @author huifer
+   * @date 2019-02-10
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public class Customer {
+      /**
+       * 客户编号(主键)
+       */
+      private Long cust_id;
+      /**
+       * 客户名称(公司名称)
+       */
+      private String cust_name;
+      /**
+       * 客户信息来源
+       */
+      private String cust_source;
+      /**
+       * 客户所属行业
+       */
+      private String cust_industry;
+      /**
+       * 客户级别
+       */
+      private String cust_level;
+      /**
+       * 固定电话
+       */
+      private String cust_phone;
+      /**
+       * 移动电话
+       */
+      private String cust_mobile;
+  
+  
+      /**
+       * 联系人
+       */
+      private Set<LinkMan> linkMans = new HashSet<LinkMan>();
+  
+      @Override
+      public boolean equals(Object o) {
+          if (this == o) return true;
+          if (o == null || getClass() != o.getClass()) return false;
+          Customer customer = (Customer) o;
+          return Objects.equals(cust_name, customer.cust_name) &&
+                  Objects.equals(cust_source, customer.cust_source) &&
+                  Objects.equals(cust_industry, customer.cust_industry) &&
+                  Objects.equals(cust_level, customer.cust_level) &&
+                  Objects.equals(cust_phone, customer.cust_phone) &&
+                  Objects.equals(cust_mobile, customer.cust_mobile);
+      }
+  
+      @Override
+      public int hashCode() {
+          return Objects.hash(cust_name, cust_source, cust_industry, cust_level, cust_phone, cust_mobile);
+      }
+  }
+  
+  ```
+
+- Customer.hbm.xml.tld
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  
+  <!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+  
+  
+  <hibernate-mapping>
+  
+      <class name="com.huifer.hibernatebook.bean.Customer" table="cst_customer">
+          <!-- 建立OID与主键映射 -->
+          <id name="cust_id" column="cust_id">
+              <generator class="native"/>
+          </id>
+          <!-- 建立普通属性与数据库表字段映射 -->
+          <property name="cust_name" column="cust_name"/>
+          <property name="cust_source" column="cust_source"/>
+          <property name="cust_industry" column="cust_industry"/>
+          <property name="cust_level" column="cust_level"/>
+          <property name="cust_phone" column="cust_phone"/>
+          <property name="cust_mobile" column="cust_mobile"/>
+          <!-- 配置一对多的映射：放置的多的一方的集合 -->
+          <!--
+              set标签 ：
+                  * name	：多的一方的对象集合的属性名称。
+                  * cascade：级联
+                  * inverse：放弃外键维护权。
+          -->
+          <set name="linkMans" cascade="save-update" inverse="true">
+              <!--
+                   key标签
+                      * column：多的一方的外键的名称。
+               -->
+              <key column="lkm_cust_id"/>
+              <!--
+                  one-to-many标签
+                      * class	:多的一方的类的全路径
+               -->
+              <one-to-many class="com.huifer.hibernatebook.bean.LinkMan"/>
+          </set>
+      </class>
+  
+  
+  </hibernate-mapping>
+  ```
+
+  
+
+- LinkMan
+
+  ```java
+  package com.huifer.hibernatebook.bean;
+  
+  import lombok.AllArgsConstructor;
+  import lombok.Data;
+  import lombok.NoArgsConstructor;
+  
+  import java.util.Objects;
+  
+  /**
+   * 描述:
+   * 联系人
+   *
+   * @author huifer
+   * @date 2019-02-11
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public class LinkMan {
+      /***
+       *联系人编号
+       */
+      private Long lkm_id;
+      /***
+       *联系人姓名
+       */
+      private String lkm_name;
+      /***
+       *联系人性别
+       */
+      private String lkm_gender;
+      /***
+       *联系人办公电话
+       */
+      private String lkm_phone;
+      /***
+       *联系人手机
+       */
+      private String lkm_mobile;
+      /***
+       *联系人邮箱
+       */
+      private String lkm_email;
+      /***
+       *联系人qq
+       */
+      private String lkm_qq;
+      /***
+       *联系人职位
+       */
+      private String lkm_position;
+      /***
+       *联系人备注
+       */
+      private String lkm_memo;
+      // 通过ORM方式表示：一个联系人只能属于某一个客户。
+      // 放置的是一的一方的对象。
+      private Customer customer;
+  
+  
+      @Override
+      public boolean equals(Object o) {
+          if (this == o) return true;
+          if (o == null || getClass() != o.getClass()) return false;
+          LinkMan linkMan = (LinkMan) o;
+          return Objects.equals(lkm_name, linkMan.lkm_name) &&
+                  Objects.equals(lkm_gender, linkMan.lkm_gender) &&
+                  Objects.equals(lkm_phone, linkMan.lkm_phone) &&
+                  Objects.equals(lkm_mobile, linkMan.lkm_mobile) &&
+                  Objects.equals(lkm_email, linkMan.lkm_email) &&
+                  Objects.equals(lkm_qq, linkMan.lkm_qq) &&
+                  Objects.equals(lkm_position, linkMan.lkm_position) &&
+                  Objects.equals(lkm_memo, linkMan.lkm_memo);
+      }
+  
+      @Override
+      public int hashCode() {
+          return Objects.hash(lkm_name, lkm_gender, lkm_phone, lkm_mobile, lkm_email, lkm_qq, lkm_position, lkm_memo);
+      }
+  }
+  
+  
+  ```
+
+- LinkMan.hbm.xml.tld
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+  <hibernate-mapping>
+      <class name="com.huifer.hibernatebook.bean.LinkMan" table="cst_linkman">
+          <!-- 建立OID与主键映射 -->
+          <id name="lkm_id" column="lkm_id">
+              <generator class="native"/>
+          </id>
+          <!-- 建立普通属性与表字段映射 -->
+          <property name="lkm_name"/>
+          <property name="lkm_gender"/>
+          <property name="lkm_phone"/>
+          <property name="lkm_mobile"/>
+          <property name="lkm_email"/>
+          <property name="lkm_qq"/>
+          <property name="lkm_position"/>
+          <property name="lkm_memo"/>
+          <!-- 配置多对一的关系：放置的是一的一方的对象 -->
+          <!--
+              many-to-one标签
+                  * name		:一的一方的对象的属性名称。
+                  * class		:一的一方的类的全路径。
+                  * column	:在多的一方的表的外键的名称。
+           -->
+          <many-to-one name="customer" class="com.huifer.hibernatebook.bean.Customer" column="lkm_cust_id"/>
+      </class>
+  </hibernate-mapping>
+  ```
+
+- 测试类
+
+  ```java
+  package com.huifer.hibernatebook.bean;
+  
+  import com.huifer.hibernatebook.utils.HibernateUtils;
+  import org.hibernate.Session;
+  import org.hibernate.Transaction;
+  import org.junit.Test;
+  
+  /**
+   * 描述:
+   * hibernate 关系测试类
+   *
+   * @author huifer
+   * @date 2019-02-11
+   */
+  public class RelationsTest {
+  
+      @Test
+      public void demo1() {
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+  
+          // 创建两个客户
+          Customer customer1 = new Customer();
+          customer1.setCust_name("客户1");
+          Customer customer2 = new Customer();
+          customer2.setCust_name("客户2");
+  
+          // 创建三个联系人
+          LinkMan linkMan1 = new LinkMan();
+          linkMan1.setLkm_name("联系人1");
+          LinkMan linkMan2 = new LinkMan();
+          linkMan2.setLkm_name("联系人2");
+          LinkMan linkMan3 = new LinkMan();
+          linkMan3.setLkm_name("联系人3");
+  
+          // 设置关系:
+          linkMan1.setCustomer(customer1);
+          linkMan2.setCustomer(customer1);
+          linkMan3.setCustomer(customer2);
+          customer1.getLinkMans().add(linkMan1);
+          customer1.getLinkMans().add(linkMan2);
+          customer2.getLinkMans().add(linkMan3);
+  
+          // 保存数据:
+          session.save(linkMan1);
+          session.save(linkMan2);
+          session.save(linkMan3);
+          session.save(customer1);
+          session.save(customer2);
+  
+          transaction.commit();
+      }
+  
+      /**
+       * 级联保存
+       * * 保存客户级联联系人
+       * * 客户 -> 联系人
+       * *客户是主体，配置 cascade
+       */
+      @Test
+      public void demo2() {
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+  
+          Customer customer = new Customer();
+          customer.setCust_name("级联保存客户1");
+  
+          LinkMan linkMan = new LinkMan();
+          linkMan.setLkm_name("级联联系人1");
+  
+          customer.getLinkMans().add(linkMan);
+          linkMan.setCustomer(customer);
+  
+          session.save(customer);
+  
+          transaction.commit();
+      }
+  
+  
+      /**
+       * 级联保存
+       * * 保存联系人级联客户
+       * * 联系人 ->客户
+       * * 联系人是主体，配置 cascade
+       */
+      @Test
+      public void demo3() {
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+  
+          Customer customer = new Customer();
+          customer.setCust_name("级联保存客户2");
+  
+          LinkMan linkMan = new LinkMan();
+          linkMan.setLkm_name("级联联系人2");
+  
+          customer.getLinkMans().add(linkMan);
+          linkMan.setCustomer(customer);
+  
+          session.save(linkMan);
+  
+          transaction.commit();
+      }
+  
+      /**
+       * 对象导航
+       * 双方都配置 cascade
+       */
+      @Test
+      public void demo4() {
+  
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+          Customer customer = new Customer();
+          customer.setCust_name("cust01");
+  
+          LinkMan linkMan1 = new LinkMan();
+          linkMan1.setLkm_name("LM1");
+          LinkMan linkMan2 = new LinkMan();
+          linkMan2.setLkm_name("LM2");
+          LinkMan linkMan3 = new LinkMan();
+          linkMan3.setLkm_name("LM3");
+  
+          linkMan1.setCustomer(customer);
+          customer.getLinkMans().add(linkMan2);
+          customer.getLinkMans().add(linkMan3);
+  
+          // 双方都设置了cascade
+  //		session.save(linkMan1); // 发送几条insert语句  4条
+  //		session.save(customer); // 发送几条insert语句  3条
+  //        session.save(linkMan2); // 发送几条insert语句  1条
+          transaction.commit();
+  
+      }
+  
+      /**
+       * 级联删除
+       */
+      @Test
+      public void demo5() {
+  
+          demo1();
+  
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+  
+          Customer customer = session.get(Customer.class, 1L);
+          session.delete(customer);
+  
+          transaction.commit();
+  
+  
+      }
+  
+  
+      /**
+       * 联系人2 改成客户2
+       * 提交多次sql
+       * 一方放弃外键维护权
+       */
+      @Test
+      public void demo6(){
+          demo1();
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+  
+          LinkMan linkMan = session.get(LinkMan.class, 2L);
+          Customer customer = session.get(Customer.class, 2L);
+  
+          linkMan.setCustomer(customer);
+          customer.getLinkMans().add(linkMan);
+  
+          transaction.commit();
+      }
+  
+  
+      /**
+       * cascade & inverse 区别
+       * cascade 关联对象操作
+       * inverse 外键操作
+       */
+      @Test
+      public void demo7() {
+          Session session = HibernateUtils.getCurrentSession();
+          Transaction transaction = session.beginTransaction();
+  
+          Customer customer = new Customer();
+          customer.setCust_name("级联保存客户1");
+  
+          LinkMan linkMan = new LinkMan();
+          linkMan.setLkm_name("级联联系人1");
+  
+          customer.getLinkMans().add(linkMan);
+          linkMan.setCustomer(customer);
+  
+          //         <set name="linkMans" cascade="save-update,delete" inverse="true">
+          session.save(customer); // 两个实体都会保存 但是没有外键
+  
+          transaction.commit();
+      }
+  
+  }
+  
+  ```
+
+  
+
+### 多对多关系
+
+- 一个学生多个课程，一个课程被多个学生选择
+
+#### 建表原则
+
+ - 学生
+    - 学生id
+    - 学生名称
+ - 课程
+    - 课程id
+    - 课程名称
+ - 中间表
+    - 主键
+    - 学生id
+    - 课程id
+ - **创建中间表，至少两个字段分别指向两个多的主键**
+
+#### 实例
+
+
+
+### 一对一关系
+
+-  一个家对应一个地址
+
+#### 建表原则
+
+- 家
+  - 家id
+  - 家庭住址
+- 地址
+  - 地址id
+  - 地址描述
+  - 外键：外键约束唯一 从家表格中获取
+- 主键对应一对一
 
