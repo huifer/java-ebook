@@ -455,7 +455,90 @@ public class HibernateUtils {
 - assigned
   - 用户自己设置
 
----
 
-###  持久化类状态
+
+
+
+## 持久化类状态
+
+### 瞬时态
+
+- 没有唯一标识，没有被session管理
+
+### 持久态
+
+- 持久态对象可以自动更新
+
+- 有唯一标识，被session管理
+
+### 脱管态
+
+- 有唯一标识，没有被session管理
+
+### 转换
+
+- 瞬时态
+  - new  获取
+  - 转换成持久态
+    - save() 方法
+  - 转换成脱管态
+    - 重设主键
+- 持久态
+  - get() 获取 ， 通过查询获取
+  - 转换成瞬时态
+    - delete()方法
+  - 转换成脱管态
+    - close(), clear() 方法
+- 脱管态
+  - new 一个新的对象在设置id
+  - 转换成持久态
+    - update()，saveOrUpdate() 方法
+  - 转换成瞬时态
+    - id设置null
+
+### hibernate缓存
+
+#### 一级缓存
+
+- session级别
+- 自动开启
+
+##### 快照区域
+
+-   org.hibernate.internal.SessionImpl
+
+
+#### 二级缓存 
+
+- sessionFactory级别 手动开启
+
+
+
+### 实例
+
+```java
+    @Test
+    public void threeStates() {
+        Session hibernateSession = HibernateUtils.getHibernateSession();
+        Transaction transaction = hibernateSession.beginTransaction();
+        // 瞬时态
+        Customer customer = new Customer();
+
+        customer.setCust_name("threeStates测试数据");
+
+
+        // 持久态
+        Serializable saveId = hibernateSession.save(customer);
+        Customer customer1 = hibernateSession.get(Customer.class, saveId);
+        transaction.commit();
+        // 资源释放
+        hibernateSession.close();
+        // 脱管态
+        System.out.println(customer.getCust_name());
+
+    }
+
+```
+
+### 
 
