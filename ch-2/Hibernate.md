@@ -548,35 +548,112 @@ public class HibernateUtils {
 
   
 
-#### 写问题
-
-
-
-### 实例
-
+#### 提供统一的session
 ```java
-    @Test
-    public void threeStates() {
-        Session hibernateSession = HibernateUtils.getHibernateSession();
-        Transaction transaction = hibernateSession.beginTransaction();
-        // 瞬时态
-        Customer customer = new Customer();
-
-        customer.setCust_name("threeStates测试数据");
+package com.huifer.hibernatebook.utils;
 
 
-        // 持久态
-        Serializable saveId = hibernateSession.save(customer);
-        Customer customer1 = hibernateSession.get(Customer.class, saveId);
-        transaction.commit();
-        // 资源释放
-        hibernateSession.close();
-        // 脱管态
-        System.out.println(customer.getCust_name());
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
+/**
+ * 描述:
+ * hibernate工具
+ *
+ * @author huifer
+ * @date 2019-02-11
+ */
+public class HibernateUtils {
+
+    public static final Configuration HIBERNATE_CFG;
+    public static final SessionFactory HIBERNATE_SESSIONFACTORY;
+
+    static
+    {
+        HIBERNATE_CFG = new Configuration().configure();
+        HIBERNATE_SESSIONFACTORY = HIBERNATE_CFG.buildSessionFactory();
     }
+
+
+    public static Session getHibernateSession(){
+        return HIBERNATE_SESSIONFACTORY.openSession();
+    }
+
+
+    public static Session getCurrentSession(){
+        return HIBERNATE_SESSIONFACTORY.getCurrentSession();
+    }
+}
+
+
+```
+核心配置
+```xml
+        <property name="hibernate.current_session_context_class" >thread</property>
 
 ```
 
-### 
+
+
+## api 
+
+### query 
+
+```java
+@Test
+    public void query() {
+
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction transaction = session.beginTransaction();
+
+        // 条件查询
+        Query query1 = session.createQuery("from Customer where cust_id>2 ");
+        List list = query1.list();
+        System.out.println(list.size());
+        query1 = session.createQuery("from Customer  where cust_name like :cust_name");
+        query1.setParameter("cust_name", "a%");
+        list = query1.list();
+        System.out.println(list);
+
+        // 分页查询
+        query1 = session.createQuery("from Customer ");
+        // 设置分页
+        // 设置第几页
+        query1.setFirstResult(0);
+        // 每一页最多
+        query1.setMaxResults(3);
+        list = query1.list();
+        System.out.println(list);
+
+        
+        transaction.commit();
+
+    }
+```
+
+### criteria
+
+```java
+@Test
+    public void criteria() {
+
+        Session session = HibernateUtils.getCurrentSession();
+        Transaction transaction = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(Customer.class);
+
+        List list = criteria.list();
+        System.out.println(list);
+
+        Criteria cust_name = criteria.add(Restrictions.like("cust_name", "a%"));
+        List list1 = cust_name.list();
+        System.out.println(list1);
+        transaction.commit();
+
+    }
+```
+
+
+
 
