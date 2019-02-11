@@ -401,3 +401,61 @@ public class HibernateUtils {
   ```
 
   
+
+## 持久化编写
+
+- 将内存中的对象放到数据库称为持久化
+
+### 编写规则
+
+- **持久化类必须提供无参构造方法**
+- **属性需要私有，对私有属性提供get&set方法**
+- **对持久化类提供唯一标识与数据库主键对应**
+- **持久化类中的属性使用包装类 Interge ， Double 等**
+- **持久化类不能用 final 修饰**
+
+### 主键
+
+#### 自然主键
+
+ - 实体类中的具体属性， 表中的具体字段
+
+#### 代理主键
+
+- 不是实体类中的具体属性，不是表中的具体字段
+- **主要使用**
+  - **原因： 自然主键参与业务需要修改源代码**
+
+#### 主键生成策略
+
+- increment 
+
+  - hibernate 提供自增长
+
+  - **用于为 long, short 或者 int 类型生成 唯一标识**。**只有在没有其他进程往同一张表中插入数据时才能使用。在集群下不要使用。**
+
+- identity
+
+  - **使用数据库的自增长机制**
+  - 对 DB2，MySQL，MS SQL Server，Sybase 和 HypersonicSQL 的内置标识字段提供支持。**返回的标识符是 long，short 或者 int 类型的。**
+
+- sequence
+
+  - 在 DB2，PostgreSQL，Oracle，SAP DB，McKoi 中使用序列（sequence）， 而在 Interbase
+    中使用生成器（generator）。**返回的标识符是 long，short 或者 int 类型的。**
+
+- uuid
+
+  - **用于字符串类型的主键**，使用hibernate 的字符串随机方式生成 
+
+- native
+
+  - **根据底层数据库的能力选择**
+
+- assigned
+  - 用户自己设置
+
+---
+
+###  持久化类状态
+
