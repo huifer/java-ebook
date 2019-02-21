@@ -7,7 +7,7 @@ javaWeb开发框架
 3. [日志](/ch-2/日志.md)
 4. [mvc](/ch-2/MVC.md)
 5. [Hibernate](/ch-2/Hibernate.md)
-6. mybatis
+6. [mybatis](/ch-2/MyBatis.md)
 
 
 
