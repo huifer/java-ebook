@@ -55,8 +55,6 @@
 </project>
 ```
 
-
-
 mybatis-config.xml
 
 ```xml
@@ -122,7 +120,6 @@ public class Dept {
     private String dname;
     private String loc;
 }
-
 ```
 
 测试类
@@ -150,7 +147,7 @@ public class Demo {
 
 查询表
 
-![查询表0001](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0001.png)
+![](/ch-2/pic/mybatis/0001.png)
 
 至此初步配置完成
 
@@ -158,10 +155,7 @@ public class Demo {
 
 ## 执行过程
 
-
-
 ```mermaid
-
 graph TD
     start[获取mybatis.config.xml] -->   conditionA[SqlSessionFactory]
     conditionA --> |xml 解析成 org.apache.ibatis.session.Configuration | conditionB[接收SqlSessionFactory] 
@@ -170,26 +164,20 @@ graph TD
     conditionD --> |  org.apache.ibatis.mapping.MappedStatement sqlSource属性 | conditionE[mapper 定位]
     conditionE --> | org.apache.ibatis.executor.SimpleExecutor doUpdate方法 stmt|conditionF[数据绑定到具体sql]
     conditionF --> |org.apache.ibatis.executor.statement.PreparedStatementHandler update方法 提交| conditionG[传输sql]
-    
+
     conditionG -->|commit| stop
-    
- 
 ```
-
-
 
 ### session
 
-
-
 获取mybatils-config.xml 配置 解析xml标签
 
-- - org.apache.ibatis.session.defaults.DefaultSqlSessionFactory
+* * org.apache.ibatis.session.defaults.DefaultSqlSessionFactory
 
     ```java
       private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
             Transaction tx = null;
-    
+
             DefaultSqlSession var8;
             try {
                 Environment environment = this.configuration.getEnvironment();
@@ -203,13 +191,12 @@ graph TD
             } finally {
                 ErrorContext.instance().reset();
             }
-    
+
             return var8;
         }
-    
     ```
 
-    ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0002.png)
+    ![](/ch-2/pic/mybatis/0002.png)
 
 ### insert
 
@@ -234,12 +221,11 @@ org.apache.ibatis.session.defaults.DefaultSqlSession
 
         return var4;
     }
-
 ```
 
 ms 对象
 
-![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0003.png)
+![](/ch-2/pic/mybatis/0003.png)
 
 ### doUpdate
 
@@ -263,7 +249,7 @@ public int doUpdate(MappedStatement ms, Object parameter) throws SQLException {
     }
 ```
 
-![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0004.png)
+![](/ch-2/pic/mybatis/0004.png)
 
 ### update
 
@@ -284,4 +270,6 @@ public int update(Statement statement) throws SQLException {
 ```
 
 ---
+
+
 
