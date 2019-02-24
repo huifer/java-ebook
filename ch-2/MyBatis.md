@@ -170,7 +170,7 @@ graph TD
 
 
 
-![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\流程01.png)
+![](/ch-2/pic/mybatis/流程01.png)
 
 ### session
 
