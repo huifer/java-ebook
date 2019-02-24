@@ -751,7 +751,7 @@ graph TD
 
 - SqlSession
 
-  ```java
+```java
   package com.huifer.mybatis.jdbcProxy;
   
   import java.sql.SQLException;
@@ -766,13 +766,13 @@ graph TD
       public Object select(String sql) throws SQLException;
   }
   
-  ```
+```
 
   
 
 - SqlInvaction
 
-  ```java
+```java
   package com.huifer.mybatis.jdbcProxy;
   
   import java.lang.reflect.Field;
@@ -837,13 +837,13 @@ graph TD
   
   }
   
-  ```
+```
 
   
 
 - SqlSessionFaction
 
-  ```java
+```java
   package com.huifer.mybatis.jdbcProxy;
   
   import java.lang.reflect.InvocationHandler;
@@ -864,13 +864,13 @@ graph TD
       }
   }
   
-  ```
+```
 
   
 
 - DeptMapper
 
-  ```java
+```java
   package com.huifer.mybatis.jdbcProxy;
   
   import java.sql.PreparedStatement;
@@ -892,7 +892,7 @@ graph TD
       }
   }
   
-  ```
+```
 
   
 
