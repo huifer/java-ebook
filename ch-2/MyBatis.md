@@ -356,11 +356,11 @@ public int update(Statement statement) throws SQLException {
       }
   ```
 
-  ![](\ch-2\pic\mybatis\0005.png)
+  ![](/ch-2/pic/mybatis/0005.png)
 
   当前Configuration 下的mappedStatements 属性
 
-  ![](\ch-2\pic\mybatis\0006.png)
+  ![](/ch-2/pic/mybatis/0006.png)
 
 - org.apache.ibatis.binding.MapperRegistry     addMapper 方法，作用将解析到的接口对象放到configuration 中 ，一个接口只能注册一次
 
@@ -454,7 +454,7 @@ public int update(Statement statement) throws SQLException {
 
   
 
-  ![](\ch-2\pic\mybatis\0007.png)
+  ![](/ch-2/pic/mybatis/0007.png)
 
 ### 具体sql
 
@@ -512,7 +512,7 @@ public int update(Statement statement) throws SQLException {
       }
   ```
 
-  ![](\ch-2\pic\mybatis\0008.png)
+  ![](/ch-2/pic/mybatis/0008.png)
 
 - 还原sql方法
 
@@ -541,10 +541,10 @@ public int update(Statement statement) throws SQLException {
       }
   ```
 
-  ![](\ch-2\pic\mybatis\0009.png)
+  ![](/ch-2/pic/mybatis/0009.png)
 
 - 最后看一下 sqlSource
 
-  ![](\ch-2\pic\mybatis\0010.png)
+  ![](/ch-2/pic/mybatis/0010.png)
 
 ---
