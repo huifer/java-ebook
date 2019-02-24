@@ -168,6 +168,10 @@ graph TD
     conditionG -->|commit| stop
 ```
 
+
+
+![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\流程01.png)
+
 ### session
 
 获取mybatils-config.xml 配置 解析xml标签
@@ -744,6 +748,14 @@ graph TD
     Cd --> Ce[吃东西执行]
    Ce --> 结束
 ```
+
+
+
+
+
+![](/ch-2/pic/mybatis/流程02.png)
+
+
 
 ---
 
