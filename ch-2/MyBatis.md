@@ -273,3 +273,278 @@ public int update(Statement statement) throws SQLException {
 
 
 
+---
+
+## Mapper
+
+```xml
+  <mappers>
+        <!--<mapper resource="DeptMapper.xml"/>-->
+        <package name="com.huifer.mybatis.dao"/>
+    </mappers>
+```
+
+
+### 获取过程源码
+
+- org.apache.ibatis.builder.xml.XMLConfigBuilder 使用parseConfiguration 方法将 mybatis-config.xml 中的mappers 标签内容获取到 mapperElement具体执行获取内容 ，作用将mappers添加到configuration 中
+
+  ```java
+  private void parseConfiguration(XNode root) {
+          try {
+              this.propertiesElement(root.evalNode("properties"));
+              Properties settings = this.settingsAsProperties(root.evalNode("settings"));
+              this.loadCustomVfs(settings);
+              this.loadCustomLogImpl(settings);
+              this.typeAliasesElement(root.evalNode("typeAliases"));
+              this.pluginElement(root.evalNode("plugins"));
+              this.objectFactoryElement(root.evalNode("objectFactory"));
+              this.objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+              this.reflectorFactoryElement(root.evalNode("reflectorFactory"));
+              this.settingsElement(settings);
+              this.environmentsElement(root.evalNode("environments"));
+              this.databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+              this.typeHandlerElement(root.evalNode("typeHandlers"));
+              this.mapperElement(root.evalNode("mappers"));
+          } catch (Exception var3) {
+              throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + var3, var3);
+          }
+      }
+  
+  
+  private void mapperElement(XNode parent) throws Exception {
+          if (parent != null) {
+              Iterator var2 = parent.getChildren().iterator();
+  
+              while(true) {
+                  while(var2.hasNext()) {
+                      XNode child = (XNode)var2.next();
+                      String resource;
+                      if ("package".equals(child.getName())) {
+                          resource = child.getStringAttribute("name");
+                          this.configuration.addMappers(resource);
+                      } else {
+                          resource = child.getStringAttribute("resource");
+                          String url = child.getStringAttribute("url");
+                          String mapperClass = child.getStringAttribute("class");
+                          XMLMapperBuilder mapperParser;
+                          InputStream inputStream;
+                          if (resource != null && url == null && mapperClass == null) {
+                              ErrorContext.instance().resource(resource);
+                              inputStream = Resources.getResourceAsStream(resource);
+                              mapperParser = new XMLMapperBuilder(inputStream, this.configuration, resource, this.configuration.getSqlFragments());
+                              mapperParser.parse();
+                          } else if (resource == null && url != null && mapperClass == null) {
+                              ErrorContext.instance().resource(url);
+                              inputStream = Resources.getUrlAsStream(url);
+                              mapperParser = new XMLMapperBuilder(inputStream, this.configuration, url, this.configuration.getSqlFragments());
+                              mapperParser.parse();
+                          } else {
+                              if (resource != null || url != null || mapperClass == null) {
+                                  throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
+                              }
+  
+                              Class<?> mapperInterface = Resources.classForName(mapperClass);
+                              this.configuration.addMapper(mapperInterface);
+                          }
+                      }
+                  }
+  
+                  return;
+              }
+          }
+      }
+  ```
+
+  ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0005.png)
+
+  当前Configuration 下的mappedStatements 属性
+
+  ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0006.png)
+
+- org.apache.ibatis.binding.MapperRegistry     addMapper 方法，作用将解析到的接口对象放到configuration 中 ，一个接口只能注册一次
+
+  ```java
+  
+      public <T> void addMapper(Class<T> type) {
+          if (type.isInterface()) {
+              if (this.hasMapper(type)) {
+                  throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
+              }
+  
+              boolean loadCompleted = false;
+  
+              try {
+                  this.knownMappers.put(type, new MapperProxyFactory(type));
+                  MapperAnnotationBuilder parser = new MapperAnnotationBuilder(this.config, type);
+                  parser.parse();
+                  loadCompleted = true;
+              } finally {
+                  if (!loadCompleted) {
+                      this.knownMappers.remove(type);
+                  }
+  
+              }
+          }
+  
+      }
+  ```
+
+- org.apache.ibatis.builder.annotation.MapperAnnotationBuilder    parse方法
+
+  loadXmlResource 来确认加载具体的xml文件
+
+  
+
+  ```java
+  public void parse() {
+          String resource = this.type.toString();
+          if (!this.configuration.isResourceLoaded(resource)) {
+              this.loadXmlResource();
+              this.configuration.addLoadedResource(resource);
+              this.assistant.setCurrentNamespace(this.type.getName());
+              this.parseCache();
+              this.parseCacheRef();
+              Method[] methods = this.type.getMethods();
+              Method[] var3 = methods;
+              int var4 = methods.length;
+  
+              for(int var5 = 0; var5 < var4; ++var5) {
+                  Method method = var3[var5];
+  
+                  try {
+                      if (!method.isBridge()) {
+                          this.parseStatement(method);
+                      }
+                  } catch (IncompleteElementException var8) {
+                      this.configuration.addIncompleteMethod(new MethodResolver(this, method));
+                  }
+              }
+          }
+  
+          this.parsePendingMethods();
+      }
+  
+  
+      private void loadXmlResource() {
+          if (!this.configuration.isResourceLoaded("namespace:" + this.type.getName())) {
+              String xmlResource = this.type.getName().replace('.', '/') + ".xml";
+              InputStream inputStream = this.type.getResourceAsStream("/" + xmlResource);
+              if (inputStream == null) {
+                  try {
+                      inputStream = Resources.getResourceAsStream(this.type.getClassLoader(), xmlResource);
+                  } catch (IOException var4) {
+                  }
+              }
+  
+              if (inputStream != null) {
+                  XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, this.assistant.getConfiguration(), xmlResource, this.configuration.getSqlFragments(), this.type.getName());
+                  xmlParser.parse();
+              }
+          }
+  
+      }
+  
+  ```
+  **根据 loadXmlResource 中下面这行得知 ， PojoMapper.xml 要和 PojoMapperInterface 放在一个路径下**
+
+  ```
+  String xmlResource = this.type.getName().replace('.', '/') + ".xml";
+  ```
+
+  
+
+  ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0007.png)
+
+### 具体sql
+
+- org.apache.ibatis.builder.xml.XMLStatementBuilder    parseStatementNode 方法解析sql语句
+
+  ```xml
+    <select id="deptFindById" resultType="com.huifer.mybatis.pojo.Dept" parameterType="java.lang.Long">
+          select * from dept where dept.id=#{deptno};
+      </select>
+  
+  ```
+
+  ```java
+  public void parseStatementNode() {
+          String id = this.context.getStringAttribute("id");
+          String databaseId = this.context.getStringAttribute("databaseId");
+          if (this.databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
+              Integer fetchSize = this.context.getIntAttribute("fetchSize");
+              Integer timeout = this.context.getIntAttribute("timeout");
+              String parameterMap = this.context.getStringAttribute("parameterMap");
+              String parameterType = this.context.getStringAttribute("parameterType");
+              Class<?> parameterTypeClass = this.resolveClass(parameterType);
+              String resultMap = this.context.getStringAttribute("resultMap");
+              String resultType = this.context.getStringAttribute("resultType");
+              String lang = this.context.getStringAttribute("lang");
+              LanguageDriver langDriver = this.getLanguageDriver(lang);
+              Class<?> resultTypeClass = this.resolveClass(resultType);
+              String resultSetType = this.context.getStringAttribute("resultSetType");
+              StatementType statementType = StatementType.valueOf(this.context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
+              ResultSetType resultSetTypeEnum = this.resolveResultSetType(resultSetType);
+              String nodeName = this.context.getNode().getNodeName();
+              SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+              boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+              boolean flushCache = this.context.getBooleanAttribute("flushCache", !isSelect);
+              boolean useCache = this.context.getBooleanAttribute("useCache", isSelect);
+              boolean resultOrdered = this.context.getBooleanAttribute("resultOrdered", false);
+              XMLIncludeTransformer includeParser = new XMLIncludeTransformer(this.configuration, this.builderAssistant);
+              includeParser.applyIncludes(this.context.getNode());
+              this.processSelectKeyNodes(id, parameterTypeClass, langDriver);
+              SqlSource sqlSource = langDriver.createSqlSource(this.configuration, this.context, parameterTypeClass);
+              String resultSets = this.context.getStringAttribute("resultSets");
+              String keyProperty = this.context.getStringAttribute("keyProperty");
+              String keyColumn = this.context.getStringAttribute("keyColumn");
+              String keyStatementId = id + "!selectKey";
+              keyStatementId = this.builderAssistant.applyCurrentNamespace(keyStatementId, true);
+              Object keyGenerator;
+              if (this.configuration.hasKeyGenerator(keyStatementId)) {
+                  keyGenerator = this.configuration.getKeyGenerator(keyStatementId);
+              } else {
+                  keyGenerator = this.context.getBooleanAttribute("useGeneratedKeys", this.configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType)) ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
+              }
+  
+              this.builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType, fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass, resultSetTypeEnum, flushCache, useCache, resultOrdered, (KeyGenerator)keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
+          }
+      }
+  ```
+
+  ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0008.png)
+
+- 还原sql方法
+
+  ```
+  SqlSource sqlSource = langDriver.createSqlSource(this.configuration, this.context, parameterTypeClass);
+  ```
+
+- org.apache.ibatis.scripting.defaults.RawSqlSource  RawSqlSource方法
+
+  ```java
+  public RawSqlSource(Configuration configuration, String sql, Class<?> parameterType) {
+          SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
+          Class<?> clazz = parameterType == null ? Object.class : parameterType;
+          this.sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap());
+      }
+  ```
+
+- org.apache.ibatis.builder.SqlSourceBuilder  parse方法还原成sql语句
+
+  ```java
+      public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
+          SqlSourceBuilder.ParameterMappingTokenHandler handler = new SqlSourceBuilder.ParameterMappingTokenHandler(this.configuration, parameterType, additionalParameters);
+          GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
+          String sql = parser.parse(originalSql);
+          return new StaticSqlSource(this.configuration, sql, handler.getParameterMappings());
+      }
+  ```
+
+  ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0009.png)
+
+- 最后看一下 sqlSource
+
+  ![](E:\gitbook\Import\java_ji_neng\ch-2\pic\mybatis\0010.png)
+
+---
