@@ -548,3 +548,378 @@ public int update(Statement statement) throws SQLException {
   ![](/ch-2/pic/mybatis/0010.png)
 
 ---
+
+## 代理模式
+
+java 代理模式实现
+
+1. 先实现一个主要业务
+
+   ```java
+   package com.huifer.mybatis.proxy;
+   
+   /**
+    * 描述:
+    * 默认监听方法设计
+    *
+    * @author huifer
+    * @date 2019-02-24
+    */
+   public interface BaseMothed {
+       /**
+        * 吃
+        */
+       void eat();
+   
+       /**
+        * 玩
+        */
+       void play();
+   }
+   
+   ```
+
+   
+
+2. 对主要业务进行实现
+
+   ```java
+   package com.huifer.mybatis.proxy;
+   
+   /**
+    * 描述:
+    *	主要业务的实现
+    * @author huifer
+    * @date 2019-02-24
+    */
+   public class Person implements BaseMothed {
+       @Override
+       public void eat() {
+           System.out.println("吃东西了");
+       }
+   
+       @Override
+       public void play() {
+           System.out.println("开始玩了");
+       }
+   }
+   
+   ```
+
+   
+
+3. 创建一个监听业务的工具
+
+   ```java
+   package com.huifer.mybatis.proxy;
+   
+   import java.lang.reflect.InvocationHandler;
+   import java.lang.reflect.Method;
+   
+   /**
+    * 描述:
+    * 通知类
+    *
+    * @author huifer
+    * @date 2019-02-24
+    */
+   public class InformUtil implements InvocationHandler {
+   
+       /**
+        * 被监控的对象，不能是具体实现类，要多具体行为进行监控
+        */
+       private BaseMothed obj;
+   
+   
+       public InformUtil(BaseMothed mothed) {
+           this.obj = mothed;
+       }
+   
+   
+       /***
+        * 被监控行为执行时，拦截
+        * @param proxy 代理对象
+        * @param method 监控方法 主要业务
+        * @param args method的参数
+        * @return
+        * @throws Throwable
+        */
+       @Override
+       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+           // 获取返回结果
+           Object result;
+   
+           // 判断行为
+           String methodName = method.getName();
+           if ("eat".equals(methodName)) {
+               cc();
+               result = method.invoke(this.obj, args);
+           } else {
+               cc();
+               result = method.invoke(this.obj, args);
+           }
+   
+           return result;
+       }
+   
+       /***
+        * 次要业务实现
+        */
+       public void cc() {
+           System.out.println("监听一下下操作内容");
+       }
+   
+   
+   }
+   
+   ```
+
+   
+
+4. 实现代理对象
+
+   ```java
+   package com.huifer.mybatis.proxy;
+   
+   import java.lang.reflect.InvocationHandler;
+   import java.lang.reflect.Proxy;
+   
+   /**
+    * 描述:
+    * 代理工厂
+    *
+    * @author huifer
+    * @date 2019-02-24
+    */
+   public class ProxyFactory {
+       /**
+        * 代理对象的数据类型由监听行为描述
+        *
+        * @return {@link BaseMothed}
+        */
+       public static BaseMothed builder(Class classFile) throws IllegalAccessException, InstantiationException {
+           // 监听对象创建
+           BaseMothed baseMothed = (BaseMothed) classFile.newInstance();
+           // 通知对象
+           InvocationHandler invocationHandler = new InformUtil(baseMothed);
+           // 代理对象创建
+           BaseMothed proxyObj = (BaseMothed) Proxy.newProxyInstance(baseMothed.getClass().getClassLoader(), baseMothed.getClass().getInterfaces(), invocationHandler);
+           return proxyObj;
+       }
+   }
+   
+   ```
+
+5. 测试
+
+   ```java
+   package com.huifer.mybatis.proxy;
+   
+   /**
+    * 描述:
+    *
+    * @author huifer
+    * @date 2019-02-24
+    */
+   public class Main {
+       public static void main(String[] args) throws Exception{
+   
+           // 代理对象创建
+           BaseMothed wang = ProxyFactory.builder(Person.class);
+           wang.eat();
+   
+       }
+   }
+   
+   ```
+
+
+
+```mermaid
+graph TD
+	START[对象] --> Ca[对象的方法被监听,具体那个被监听]
+    Ca --> Cb[吃东西被监听,此时吃东西没有被执行]
+    Cb --> Cc[在吃东西这个过程中要干嘛]
+    Cc --> Cd[监听吃东西的方法执行完成]
+    Cd --> Ce[吃东西执行]
+   Ce --> 结束
+```
+
+---
+
+## 代理模式下JDBC
+
+- SqlSession
+
+  ```java
+  package com.huifer.mybatis.jdbcProxy;
+  
+  import java.sql.SQLException;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-02-24
+   */
+  public interface SqlSession {
+      public Object select(String sql) throws SQLException;
+  }
+  
+  ```
+
+  
+
+- SqlInvaction
+
+  ```java
+  package com.huifer.mybatis.jdbcProxy;
+  
+  import java.lang.reflect.Field;
+  import java.lang.reflect.InvocationHandler;
+  import java.lang.reflect.Method;
+  import java.sql.Connection;
+  import java.sql.DriverManager;
+  import java.sql.PreparedStatement;
+  import java.sql.ResultSet;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-02-24
+   */
+  public class SqlInvaction implements InvocationHandler {
+  
+      private SqlSession obj;
+      Connection connection;
+      PreparedStatement preparedStatement;
+  
+      public SqlInvaction(SqlSession obj) {
+          this.obj = obj;
+      }
+  
+      @Override
+      public ResultSet invoke(Object proxy, Method method, Object[] args) throws Throwable {
+          init();
+          Field ps = obj.getClass().getDeclaredField("preparedStatement");
+          ps.set(obj, preparedStatement);
+          ResultSet rs = (ResultSet) method.invoke(obj, args);
+  
+          while (rs.next()) {
+              int id = rs.getInt("id");
+              String dname = rs.getString("dname");
+              String loc = rs.getString("loc");
+  
+              System.out.println(id + "\t" + dname + "\t" + loc);
+          }
+  
+          end();
+  
+          return rs;
+      }
+  
+  
+      private void init() throws Exception {
+          Class.forName("com.mysql.cj.jdbc.Driver");
+          this.connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/dy_java?serverTimezone=UTC&rewriteBatchedStatements=true&useUnicode=true&characterEncoding=utf8", "root", "root");
+          this.preparedStatement = connection.prepareStatement(" ");
+      }
+  
+      private void end() throws Exception {
+          if (this.preparedStatement != null) {
+              this.preparedStatement.close();
+          }
+          if (this.connection != null) {
+              this.connection.close();
+          }
+      }
+  
+  }
+  
+  ```
+
+  
+
+- SqlSessionFaction
+
+  ```java
+  package com.huifer.mybatis.jdbcProxy;
+  
+  import java.lang.reflect.InvocationHandler;
+  import java.lang.reflect.Proxy;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-02-24
+   */
+  public class SqlSessionFaction {
+      public static SqlSession builder(Class classFile) throws Exception {
+          SqlSession sqlSession = (SqlSession) classFile.newInstance();
+          InvocationHandler invocationHandler = new SqlInvaction(sqlSession);
+          SqlSession proxy = (SqlSession) Proxy.newProxyInstance(sqlSession.getClass().getClassLoader(), sqlSession.getClass().getInterfaces(), invocationHandler);
+          return proxy;
+      }
+  }
+  
+  ```
+
+  
+
+- DeptMapper
+
+  ```java
+  package com.huifer.mybatis.jdbcProxy;
+  
+  import java.sql.PreparedStatement;
+  import java.sql.ResultSet;
+  import java.sql.SQLException;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-02-24
+   */
+  public class DeptMapper implements SqlSession {
+      PreparedStatement preparedStatement;
+      @Override
+      public Object select(String sql) throws SQLException {
+          ResultSet resultSet = preparedStatement.executeQuery(sql);
+          return resultSet;
+      }
+  }
+  
+  ```
+
+  
+
+- Main
+
+  ```java
+  package com.huifer.mybatis.jdbcProxy;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-02-24
+   */
+  public class Main {
+      public static void main(String[] args) throws Exception {
+  
+          SqlSession builder = SqlSessionFaction.builder(DeptMapper.class);
+          Object obj = builder.select("select * from dept");
+  
+  
+  
+          System.out.println();
+      }
+  }
+  
+  ```
+
+  
+
