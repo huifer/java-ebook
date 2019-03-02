@@ -1,6 +1,8 @@
 # Spring
 
-## 依赖
+## Ioc
+
+### 依赖
 
 ```xml
 <dependency>
@@ -15,9 +17,7 @@
 </dependency>
 ```
 
-## 简单操作
-
-### beans
+#### 简单操作
 
 - 定义学生类 student 和 老师类 teacher 并且交给spring 管理
 
@@ -93,7 +93,7 @@ public class Teacher {
 
 ---
 
-### 模拟一个beans获取
+#### 模拟一个beans获取
 
 - beans标签的储存
 
@@ -203,14 +203,14 @@ public class Teacher {
 
 ---
 
-## spring scope  
+### spring scope  
 
 - singleton 
   -  单例模式， spring容器启动就创建，每次都是同一个实例对象
 - prototype : 
   - 在调用getBeans 创建， 每次都是全新实例
 
-### 修改 beansFactory
+#### 修改 beansFactory
 
 - BeanFactory
 
@@ -355,7 +355,7 @@ public class Teacher {
 
 ---
 
-## 动态工厂
+### 动态工厂
 
 - 老师的自定义工厂
 
@@ -412,7 +412,7 @@ public class Teacher {
 
 
 
-### 修改 beansFactory
+#### 修改 beansFactory
 
 ```java
 public Object getBeanFactory(String beanId) throws Exception {
@@ -489,7 +489,7 @@ public Object getBeanFactory(String beanId) throws Exception {
 
 ---
 
-## 静态工厂
+### 静态工厂
 
 static 关键字
 
@@ -530,7 +530,7 @@ static 关键字
 
 ---
 
-## BeanPostProcessor 接口
+### BeanPostProcessor 接口
 
 对bean创建前创建后的应用
 
@@ -615,9 +615,64 @@ static 关键字
       }
   ```
 
-### 思考
+## 思考
 
 利用bean实例化来监控每一个接口，数据的增删改查的全局监控
 
 ---
 
+## DI
+
+- 实体
+
+  ```java
+  @Data
+  @NoArgsConstructor
+  public class Di {
+  
+      private String diName;
+      private int[] ints;
+      private List<Integer> integerList;
+  }
+  
+  ```
+
+  
+
+- 配置
+
+```xml
+  <!--Di-->
+    <bean id="di01" class="com.huifer.bean.Di">
+        <property name="diName" value="dididididi"></property>
+        <property name="ints" value="1,2,3,4,5"/>
+        <property name="integerList" >
+            <array>
+                <value>1</value>
+                <value>1</value>
+                <value>1</value>
+                <value>1</value>
+            </array>
+        </property>
+
+    </bean>
+
+```
+
+- 测试
+
+  ```java
+   @Test
+      public void testIocDemo05() {
+          Di di = (Di) context.getBean("di01");
+          System.out.println();
+      }
+  ```
+
+
+
+---
+
+## AOP
+
+### 术语
