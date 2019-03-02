@@ -89,7 +89,7 @@ public class Teacher {
 
   可以看到在Spring-config.xml 中定义的beans 在BeanDefinition中存放 是一个map对象
 
-![1551500140955](E:\gitbook\Import\java_ji_neng\ch-2\assets\1551500140955.png)
+![![1551500140955](E:\gitbook\Import\java_ji_neng\ch-2\assets\1551500140955.png)](/ch-2/assets/1551500140955.png)
 
 ---
 
