@@ -11,6 +11,7 @@
    4. [mvc](/ch-2/MVC.md)
    5. [Hibernate](/ch-2/Hibernate.md)
    6. [mybatis](/ch-2/MyBatis.md)
+   7. [spring](/ch-2/spring.md)
 3. [数据通信](/ch-3/README.md)
    1. [restful](/ch-3/restfull.md)
    2. [RPC](/ch-3/RPC.md)
