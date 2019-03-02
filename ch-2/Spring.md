@@ -676,3 +676,11 @@ static 关键字
 ## AOP
 
 ### 术语
+
+- Aspect : 切面
+- Target ： 目标对象
+- Weaving : 植入
+- JoinPoint : 连接点
+- PointCut: 切入点
+- Advice : 通知
+- Advisor: 顾问
