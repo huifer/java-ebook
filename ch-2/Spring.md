@@ -683,4 +683,21 @@ static 关键字
 - JoinPoint : 连接点
 - PointCut: 切入点
 - Advice : 通知
+  - 前置通知
+    - 执行切面->切入点
+  - 后置通知
+    - 切入点-> 执行切面
+  - 环绕通知
+    - 执行切面-> 切入点-> 执行切面->切入点 往复循环
+  - 异常通知
+    - 切入点异常的切面操作
 - Advisor: 顾问
+
+
+
+
+
+### 前置通知
+
+实现org.springframework.aop.MethodBeforeAdvice 即可
+
