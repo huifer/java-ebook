@@ -1127,6 +1127,67 @@ static 关键字
 
   - 注册的代理工厂只有woman一个target 男性不可以用类型强制住哪换获取 
 
+
+
+### aspects
+
+- 通知类
+
+  ```java
+  public class MyAdvice {
+  
+      public void log(){
+          System.out.println("log");
+      }
+  
+  }
+  
+  ```
+
+- 配置
+
+  ```xml
+    <!--配置通知-->
+      <bean id="myAdvice2" class="com.huifer.aop.aspects.MyAdvice"/>
+  
+  
+  
+      <!--aop配置-->
+      <aop:config>
+          <aop:aspect ref="myAdvice2">
+              <aop:before method="log"
+                          pointcut="execution(void com.huifer.comment.RoleServiceImpl.saveRole())"></aop:before>
+          </aop:aspect>
+  
+      </aop:config>
+  ```
+
+  
+
+- 测试类
+
+  ```java
+  
+  @RunWith(SpringJUnit4ClassRunner.class)
+  @ContextConfiguration(locations = {"classpath:spring_comment_config.xml"})
+  public class MyAdviceTest {
+      @Autowired
+      private RoleService roleService;
+  
+  
+      @Test
+      public void demo(){
+          roleService.saveRole();
+      }
+  }
+  ```
+
+  
+
+
+
+
+
 ---
 
 ## 初始化
@@ -1352,3 +1413,110 @@ public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 ---
 
 ## junit整合
+
+```java
+ <!--spring junit-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.1.5.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
+```
+
+注意点如果这样配置会出现一个异常
+
+Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUnit 4.12 or higher.
+
+```java
+
+java.lang.ExceptionInInitializerError
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at org.junit.internal.builders.AnnotatedBuilder.buildRunner(AnnotatedBuilder.java:29)
+	at org.junit.internal.builders.AnnotatedBuilder.runnerForClass(AnnotatedBuilder.java:21)
+	at org.junit.runners.model.RunnerBuilder.safeRunnerForClass(RunnerBuilder.java:59)
+	at org.junit.internal.builders.AllDefaultPossibilitiesBuilder.runnerForClass(AllDefaultPossibilitiesBuilder.java:26)
+	at org.junit.runners.model.RunnerBuilder.safeRunnerForClass(RunnerBuilder.java:59)
+	at org.junit.internal.requests.ClassRequest.getRunner(ClassRequest.java:26)
+	at org.junit.internal.requests.FilterRequest.getRunner(FilterRequest.java:31)
+	at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:49)
+	at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:47)
+	at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:242)
+	at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:70)
+Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUnit 4.12 or higher.
+	at org.springframework.util.Assert.state(Assert.java:73)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.<clinit>(SpringJUnit4ClassRunner.java:104)
+	... 15 more
+```
+
+查看一下 spring-test-version.pom文件中有这么一段，所以修改pom文件
+
+```xml
+   <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+```
+
+- 修改后正确的配置
+
+  ```xml
+   <!--spring junit-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-test</artifactId>
+              <version>5.1.5.RELEASE</version>
+          </dependency>
+  
+          <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <version>4.12</version>
+          </dependency>
+  ```
+
+  
+
+- 测试类编写
+
+  ```java
+  @RunWith(SpringJUnit4ClassRunner.class)
+  @ContextConfiguration(locations = {"classpath:spring_comment_config.xml"})
+  public class SpringJunit {
+  
+  
+      @Resource
+      ApplicationContext ctx;
+  
+      @Autowired
+      private UserService userService;
+  
+  
+      @Test
+      public void demo(){
+          userService.saveUser();
+      }
+  }
+  
+  ```
+
+  
+
+
+
+
+
+---
+
