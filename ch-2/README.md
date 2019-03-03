@@ -9,7 +9,7 @@ javaWeb开发框架
 5. [Hibernate](/ch-2/Hibernate.md)
 6. [mybatis](/ch-2/MyBatis.md)
 7.  [Spring](/ch-2/Spring.md)
-8.  [Spring 相关问题](/ch-2/Spring 相关问题.md)
+8.  [Spring 相关问题](/ch-2/Spring相关问题.md)
 
 
 
