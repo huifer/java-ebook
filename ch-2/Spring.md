@@ -1124,6 +1124,7 @@ static 关键字
   
 
 - **注意**
+
   - 注册的代理工厂只有woman一个target 男性不可以用类型强制住哪换获取 
 
 ---
@@ -1194,3 +1195,84 @@ e --> f[注册]
 
 ---
 
+##  注解
+
+#### demo
+
+- 配置
+
+```xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation=" http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--组建扫描器 -->
+    <!--组建扫描器：扫描带有spring注解的类，加载到 BeanDefinition中-->
+    <context:component-scan base-package="com.huifer.comment"/>
+
+</beans>
+```
+
+
+
+- bean
+
+```java
+package com.huifer.comment;
+
+import org.springframework.stereotype.Component;
+
+/**
+ * 描述:
+ *
+ * @author huifer
+ * @date 2019-03-03
+ */
+@Component(value = "userService")
+public class UserServiceImpl implements UserService {
+
+
+    @Override
+    public void saveUser() {
+        System.out.println("注解配置");
+    }
+
+}
+
+```
+
+- 测试用例
+
+```java
+public class SpringComment {
+private ClassPathXmlApplicationContext context;
+
+    @Before
+    public void init() {
+    	context = new ClassPathXmlApplicationContext("spring_comment_config.xml");
+    }
+
+
+    @Test
+    public void testCommentDemo01() {
+   	 	UserService bean = context.getBean(UserService.class);
+    	bean.saveUser();
+
+    }
+
+}
+
+```
+
+  
+
+- @Component 
+  - 组件注解
+  - 属性value 含义：唯一标识

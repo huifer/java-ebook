@@ -189,4 +189,15 @@ d --> e[实例对象]
    </map>
    ```
 
+5. properties 用props标签
+
+   ```xml
+   <props>
+       	<prop key="username">root</prop>
+   </props>
+   ```
+
    
+
+---
+
