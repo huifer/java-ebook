@@ -1273,6 +1273,25 @@ private ClassPathXmlApplicationContext context;
 
   
 
+####  常用注解
+
 - @Component 
   - 组件注解
   - 属性value 含义：唯一标识
+
+- @Controller
+  - 表现层注解
+- @Service
+  - 业务层注解
+- @Repository
+  - 持久层注解
+
+#### di
+
+- @Autowired
+  - 默认按类型装配 (byType)
+- @Qualifier
+  - 配合 @Autowired
+- @Resource
+  - 默认按名称装配(byName)
+  - 也可以按照类型寻找
