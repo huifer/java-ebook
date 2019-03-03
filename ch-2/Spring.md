@@ -699,5 +699,104 @@ static 关键字
 
 ### 前置通知
 
-实现org.springframework.aop.MethodBeforeAdvice 即可
 
+
+- 被监控方法接口编写 ， 基本接口
+
+  ```java
+  public interface BaseAopPointCut {
+      /**
+       * 吃饭
+       */
+      void eat();
+  
+      /**
+       * 上厕所
+       */
+      void wc();
+  }
+  
+  ```
+
+  
+
+- 基本接口的实现类
+
+  ```java
+  public class Person implements BaseAopPointCut {
+      @Override
+      public void eat() {
+          System.out.println("吃饭了");
+      }
+  
+      @Override
+      public void wc() {
+          System.out.println("上厕所了");
+      }
+  }
+  
+  ```
+
+  
+
+- Advice 通知，实现org.springframework.aop.MethodBeforeAdvice 即可
+
+  ```java
+  public class MyBeforAdvice implements MethodBeforeAdvice {
+      /***
+       * 切面
+       * @param method 被监听的方法
+       * @param args 方法参数
+       * @param o 代理对象
+       * @throws Throwable
+       */
+      @Override
+      public void before(Method method, Object[] args, Object o) throws Throwable {
+  
+  
+          System.out.println("洗手！！！");
+  
+  
+  
+      }
+  }
+  
+  ```
+
+  
+
+- 配置
+
+  ```xml
+  <!--注册被监控的实现类 -->
+  <bean id="person" class="com.huifer.aop.advice.Person"></bean>
+  <!--注册通知的实现类-->
+  <bean id="befor" class="com.huifer.aop.advice.MyBeforAdvice"/>
+  <!--注册代理监控 对象-->
+  <bean id="personProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+      <property name="target"  ref="person"></property>
+      <property name="interceptorNames" value="befor"></property>
+  </bean>
+  ```
+
+- 测试用例
+
+  ```java
+   @Test
+      public void testIocDemo06(){
+          BaseAopPointCut cut = (BaseAopPointCut) context.getBean("personProxy");
+          cut.eat();
+      }
+  
+  ```
+
+  
+
+- 控制台输出
+
+  ```latex
+  洗手！！！
+  吃饭了
+  ```
+
+- 注意点 getBean获取的是基本接口 
