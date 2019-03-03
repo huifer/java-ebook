@@ -1349,3 +1349,6 @@ public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
 ```
 
+---
+
+## junit整合
