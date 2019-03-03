@@ -1295,3 +1295,57 @@ private ClassPathXmlApplicationContext context;
 - @Resource
   - 默认按名称装配(byName)
   - 也可以按照类型寻找
+- @value
+
+```java
+  
+@Component(value = "bt")
+public class BeanT {
+    public double i = 10;
+}
+
+
+@Autowired
+    private BeanT bt;
+
+
+    @Resource(name = "bt")
+    private BeanT btt;
+
+    @Value(value = "1222")
+    private int dc;
+
+ @Value(value = "${data.pc}")
+    private String pc;
+```
+
+```xml
+    <context:property-placeholder location="classpath:data.properties"></context:property-placeholder>
+
+```
+
+```properties
+data.pc=win10
+```
+
+#### context 的源码
+
+```java
+public class ContextNamespaceHandler extends NamespaceHandlerSupport {
+
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("property-placeholder", new PropertyPlaceholderBeanDefinitionParser());
+		registerBeanDefinitionParser("property-override", new PropertyOverrideBeanDefinitionParser());
+		registerBeanDefinitionParser("annotation-config", new AnnotationConfigBeanDefinitionParser());
+		registerBeanDefinitionParser("component-scan", new ComponentScanBeanDefinitionParser());
+		registerBeanDefinitionParser("load-time-weaver", new LoadTimeWeaverBeanDefinitionParser());
+		registerBeanDefinitionParser("spring-configured", new SpringConfiguredBeanDefinitionParser());
+		registerBeanDefinitionParser("mbean-export", new MBeanExportBeanDefinitionParser());
+		registerBeanDefinitionParser("mbean-server", new MBeanServerBeanDefinitionParser());
+	}
+
+}
+
+```
+
