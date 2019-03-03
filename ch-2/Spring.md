@@ -1128,7 +1128,7 @@ static 关键字
 
 ---
 
-### Web
+## 初始化
 
 - web容器
   - servletContext (servlet 上想问) 
@@ -1137,7 +1137,9 @@ static 关键字
 - spring 容器
   - application (spring 上下文 beanFectory)
 
-#### 初始化过程
+
+
+### spring-web容器初始化过程
 
 ```mermaid
 graph TD
@@ -1166,5 +1168,27 @@ D --> E[spring 容器保存到 ServletContext 和 ContextLoaderListener]
 
 
 
+### WebApplication 初始化过程
 
+```mermaid
+graph TD
+A[读取web.xml] --> B[contextClass 标签]
+B--yes-->C[spring 中的关系创建具体的class 对象]
+B--no -->D[读取ContextLoader.properties配置创建具体class对象]
+D --> E[根据Class 对象创建实例]
+```
+
+
+
+### spring 容器初始化过程
+
+```mermaid
+graph TD
+a[读取spring-config.xml] --> b[创建beans]
+b --> c[读取web.xml]
+c --> d[设置applicationContext]
+d --> e[解析xml]
+e --> f[注册]
+
+```
 
