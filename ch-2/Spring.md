@@ -1128,3 +1128,43 @@ static 关键字
 
 ---
 
+### Web
+
+- web容器
+  - servletContext (servlet 上想问) 
+- web服务器
+  - servlet容器 
+- spring 容器
+  - application (spring 上下文 beanFectory)
+
+#### 初始化过程
+
+```mermaid
+graph TD
+ 
+A[web容器启动创建ContextLoaderListener , 执行 contextInitialized方法] --> B[执行ContextLoader.initWebApplicationContext 方法初始化spring 容器]
+B --> C[WebApplicationContext 创建成功]
+C--> D[refresh方法读取xml配置]
+D --> E[spring 容器保存到 ServletContext 和 ContextLoaderListener]
+
+
+```
+
+```
+	org.springframework.web.context.ContextLoaderListener.contextInitialized()
+
+    org.springframework.web.context.ContextLoader
+    initWebApplicationContext()
+    configureAndRefreshWebApplicationContext()
+    customizeContext()
+    createWebApplicationContext() // 创建了整个web的工厂
+    
+    org.springframework.context.support.AbstractApplicationContext.refresh()
+```
+
+
+
+
+
+
+
