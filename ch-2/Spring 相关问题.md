@@ -164,3 +164,29 @@ d --> e[实例对象]
 1. 构造方法注入
    1. 利用<constructor-arg name=*"id"* value=*"1"*></constructor-arg> 形式
 2. **set方法注入**
+   1. 利用<property name="target" ref="woman"></property>形式注入
+
+### 注入类型
+
+1. 简单类型 用value 关键字
+
+2. 引用类型用 ref 关键字
+
+3. 数组用 list标签
+
+   ```xml
+   <list>
+   	<value>1</value>
+       <bean></bean>
+   </list>
+   ```
+
+4. map用Map标签
+
+   ```xml
+   <map>
+   	<entry key="a" value="1"></entry>
+   </map>
+   ```
+
+   
