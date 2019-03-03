@@ -679,7 +679,7 @@ static 关键字
 
 - Aspect : 切面
 - Target ： 目标对象
-- Weaving : 植入
+- Weaving : 织入
 - JoinPoint : 连接点
 - PointCut: 切入点
 - Advice : 通知
@@ -799,5 +799,332 @@ static 关键字
   吃饭了
   ```
 
-- 注意点 getBean获取的是基本接口 
+- 注意点 getBean获取的是基本接口 ，这种写法通用性高，不能针对每一个方法进行分别操作，一次操作这个接口的所有方法
+- 后置顾问  org.springframework.aop.AfterReturningAdvice
+
+---
+
+### 顾问
+
+通知的灵活性体现方式。
+
+- 一般实现思路
+  1. 实现org.springframework.aop.ClassFilter 来判断具体执行类
+  2. 实现 org.springframework.aop.MethodMatcher 来判断具体方法
+  3. 实现切入点org.springframework.aop.Pointcut
+  4. 实现一个顾问 org.springframework.aop.PointcutAdvisor
+  5. 实现通知 ， 此处和前置通知相同不做重复描述
+
+- 案例说明
+
+  ```
+   男性上厕所不用带纸巾 ， 女性上厕所需要带纸巾
+  ```
+
+#### 具体实现
+
+- 基本被监控方法
+
+  ```java
+  public interface BaseAopPointCut {
+      /**
+       * 吃饭
+       */
+      void eat();
+  
+      /**
+       * 上厕所
+       */
+      void wc();
+  }
+  
+  ```
+
+- 具体实现类
+
+  - 男性
+
+    ```java
+    public class Man implements BaseAopPointCut {
+        @Override
+        public void eat() {
+            System.out.println("吃饭了");
+        }
+    
+        @Override
+        public void wc() {
+            System.out.println("上厕所");
+        }
+    }
+    
+    ```
+
+    
+
+  - 女性
+
+    ```java
+    public class WoMan implements BaseAopPointCut {
+        @Override
+        public void eat() {
+            System.out.println("吃饭了");
+        }
+    
+        @Override
+        public void wc() {
+            System.out.println("上厕所");
+        }
+    }
+    
+    ```
+
+    
+
+- 类过滤器
+
+  ```java
+  /**
+   * 描述:
+   * 类过滤器
+   *
+   * @author huifer
+   * @date 2019-03-03
+   */
+  public class MyClassFilter implements ClassFilter {
+      /***
+       * 判断当前实现类是否是我们的织入所相关的类
+       * 本次案例中 男性上厕所不需要带纸巾，女性上厕所需要带纸巾，
+       * 那么BaseAopPointCut接口应该要对女性进行判断，完成此步骤后还需要一个方法匹配器 ，
+       * 再次我们只要对上厕所匹配 吃饭不需要匹配
+       *
+       * @param aClass 当前被拦截的类
+       * @return boolean
+       */
+      @Override
+      public boolean matches(Class<?> aClass) {
+          if (aClass == WoMan.class) {
+  
+              return true;
+          }
+          return false;
+      }
+  }
+  ```
+
+- 方法过滤器
+
+  ```java
+  
+  /**
+   * 描述:
+   * 方法匹配器
+   *
+   * @author huifer
+   * @date 2019-03-03
+   */
+  public class MyMethodMatcher implements MethodMatcher {
+  
+      /**
+       * 被监控接口的方法都是唯一的 使用这个方法，只根据名称判断！！！
+       * {@link MyClassFilter}
+       *
+       * @param method 待判断的方法
+       * @param aClass 目标类
+       * @return boolean
+       */
+      @Override
+      public boolean matches(Method method, Class<?> aClass) {
+          if (method.getName().equals("wc")) {
+              return true;
+          }
+          return false;
+      }
+  
+      @Override
+      public boolean isRuntime() {
+          return false;
+      }
+  
+      @Override
+      public boolean matches(Method method, Class<?> aClass, Object... objects) {
+          return false;
+      }
+  }
+  
+  ```
+
+  
+
+- 通知
+
+  ```java
+  public class MyBeforAdvice implements MethodBeforeAdvice {
+      /***
+       * 切面
+       * @param method 被监听的方法
+       * @param args 方法参数
+       * @param o 代理对象
+       * @throws Throwable
+       */
+      @Override
+      public void before(Method method, Object[] args, Object o) throws Throwable {
+  
+  
+          System.out.println("带纸巾！！！");
+  
+  
+  
+      }
+  }
+  
+  ```
+
+- 切点
+
+  ```java
+  @Setter
+  public class MyPointCut implements Pointcut {
+  
+      /**
+       * 类型过滤器
+       */
+      private ClassFilter classFilter;
+      /**
+       * 方法过滤器
+       */
+      private MethodMatcher matcher;
+  
+  
+      /**
+       * @return 返回类过滤器
+       */
+      @Override
+      public ClassFilter getClassFilter() {
+          return this.classFilter;
+      }
+  
+  
+      /**
+       * @return 返回方法过滤器
+       */
+      @Override
+      public MethodMatcher getMethodMatcher() {
+          return this.matcher;
+      }
+  }
+  
+  ```
+
+  
+
+- 自定义顾问
+
+  ```java
+  /**
+   * 描述:
+   * 自定义顾问
+   *
+   * @author huifer
+   * @date 2019-03-03
+   */
+  public class MyPointCutAdvisor implements PointcutAdvisor {
+      /**
+       * 次要业务主要业务 + 执行顺序
+       * 本次案例 上厕所 + 带纸巾
+       */
+      private Advice advice;
+      /**
+       * 拦截对象+ 主要业务
+       * 本次案例 女人 + 上厕所
+       */
+      private Pointcut pointcut;
+  
+      public void setAdvice(Advice advice) {
+          this.advice = advice;
+      }
+  
+      public void setPointcut(Pointcut pointcut) {
+          this.pointcut = pointcut;
+      }
+  
+      @Override
+      public Pointcut getPointcut() {
+          return this.pointcut;
+      }
+  
+      @Override
+      public Advice getAdvice() {
+          return this.advice;
+      }
+  
+      @Override
+      public boolean isPerInstance() {
+          return false;
+      }
+  }
+  ```
+
+- 配置
+
+  ```xml
+  <!--顾问-->
+  
+  <!--顾问注册-->
+  <!--被监控实现类-->
+  <bean id="woman" class="com.huifer.aop.advisor.WoMan"></bean>
+  <!--注册 类型过滤器-->
+  <bean id="classFilter" class="com.huifer.aop.advisor.MyClassFilter"/>
+  <!--注册 方法过滤器-->
+  <bean id="methodFilter" class="com.huifer.aop.advisor.MyMethodMatcher"/>
+  <!--注册通知-->
+  <bean id="wcBefor" class="com.huifer.aop.advisor.MyBeforAdvice"></bean>
+  <!--注册切入点 pointCut-->
+  <bean id="pointCut" class="com.huifer.aop.advisor.MyPointCut">
+      <property name="classFilter" ref="classFilter"/>
+      <property name="matcher" ref="methodFilter"/>
+  </bean>
+  <!--注册自定义顾问-->
+  <bean id="myPointCutAdvisor" class="com.huifer.aop.advisor.MyPointCutAdvisor">
+      <property name="pointcut" ref="pointCut"/>
+      <property name="advice" ref="wcBefor"/>
+  </bean>
+  <!--注册代理对象工厂-->
+  <bean id="woManProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+      <property name="target" ref="woman"></property>
+      <property name="proxyTargetClass" value="true"/>
+      <property name="interceptorNames" value="myPointCutAdvisor"/>
+  </bean>
+  ```
+
+- 测试用例、
+
+  ```java
+     @Test
+      public void testAopDemo02() {
+          System.out.println("************************************************");
+          WoMan woMan = (WoMan) context.getBean("woManProxy");
+          System.out.println("==================女性吃饭==================");
+          woMan.eat();
+          System.out.println("==================女性上厕所==================");
+          woMan.wc();
+  
+      }
+  ```
+
+- 控制台输出
+
+  ```
+  ==================女性吃饭==================
+  吃饭了
+  ==================女性上厕所==================
+  带纸巾！！！
+  上厕所
+  ```
+
+  
+
+- **注意**
+  - 注册的代理工厂只有woman一个target 男性不可以用类型强制住哪换获取 
+
+---
 
