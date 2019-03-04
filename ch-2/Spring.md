@@ -1184,9 +1184,58 @@ static 关键字
 
   
 
+aspects 代码量可能比spring-aop 的代码量少一些
 
+#### 注解形式
 
+- 自定义注解
 
+  ```java
+  @Aspect
+  @Component(value = "myAspect")
+  public class MyAspect {
+  
+  
+      @Before(value = "execution(* *..*.*ServiceImpl.*(..))")
+      public void asBefor(){
+          System.out.println("注解形式的前置通知");
+      }
+  
+  
+  
+  }
+  ```
+
+  
+
+- 配置
+
+  ```xml
+     <!--注解切面-->
+      <!--扫描切面类-->
+      <context:component-scan base-package="com.huifer.aop.aspects.comment"/>
+  <!--开启AOP自动代理-->
+      <aop:aspectj-autoproxy ></aop:aspectj-autoproxy>
+  ```
+
+- 测试类
+
+  ```java
+  @RunWith(SpringJUnit4ClassRunner.class)
+  @ContextConfiguration(locations = {"classpath:spring_comment_config.xml"})
+  public class MyAdviceTest {
+      @Autowired
+      private RoleService roleService;
+  
+  
+      @Test
+      public void demo(){
+          roleService.saveRole();
+      }
+  }
+  ```
+
+  
 
 ---
 
@@ -1519,4 +1568,8 @@ Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUn
 
 
 ---
+
+## spring 事务
+
+
 
