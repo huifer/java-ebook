@@ -1331,15 +1331,17 @@ aspects 代码量可能比spring-aop 的代码量少一些
 
 - 源码的META-INF中有这些配置文件,里面的内容和xml中的头部benas 一样
 
-   ![1551791424174](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791424174.png)
+- 
 
-   ![1551791486471](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791486471.png)
+   ![1551791665379](assets/1551791665379.png)
+
+   ![1551791682902](assets/1551791682902.png)
 
 - 源码中说明了这些文件的使用过程不在细读
 
-![1551791532064](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791532064.png)
+![1551791708324](assets/1551791708324.png)
 
-![1551791562685](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791562685.png)
+
 
 ---
 
