@@ -1331,7 +1331,7 @@ aspects 代码量可能比spring-aop 的代码量少一些
 
 - 源码的META-INF中有这些配置文件,里面的内容和xml中的头部benas 一样
 
-   
+- 
 
    ![1551791665379](assets/1551791665379.png)
 
@@ -1340,6 +1340,20 @@ aspects 代码量可能比spring-aop 的代码量少一些
 - 源码中说明了这些文件的使用过程不在细读
 
 ![1551791708324](assets/1551791708324.png)
+
+
+
+
+
+- AOP相关的一些配置
+  - ![1551791936202](assets/1551791936202.png)
+- NamespaceHandlerSupport
+  - ![1551791988617](assets/1551791988617.png)
+- org.springframework.beans.factory.xml.DefaultNamespaceHandlerResolver 中的resolve方法解析具体的NamespaceHandler
+  - ![1551792113426](assets/1551792113426.png)
+- AopNamespaceHandler 
+  - 这些elementName 就相当于我们的标签名称
+  - ![1551792218841](assets/1551792218841.png)
 
 
 
