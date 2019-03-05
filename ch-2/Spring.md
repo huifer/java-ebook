@@ -1235,7 +1235,111 @@ aspects 代码量可能比spring-aop 的代码量少一些
   }
   ```
 
-  
+
+
+### 源码查看
+
+#### 命名空间的源码
+
+
+- org.springframework.context.support.AbstractApplicationContext
+   - 	refresh方法
+    	- 	ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+- org.springframework.context.support.AbstractRefreshableApplicationContext
+  ```java
+  @Override
+  protected final void refreshBeanFactory() throws BeansException {
+  	if (hasBeanFactory()) {
+  		destroyBeans();
+  		closeBeanFactory();
+  	}
+  	try {
+  		DefaultListableBeanFactory beanFactory = createBeanFactory();
+  		beanFactory.setSerializationId(getId());
+  		customizeBeanFactory(beanFactory);
+  		loadBeanDefinitions(beanFactory);
+  		synchronized (this.beanFactoryMonitor) {
+  			this.beanFactory = beanFactory;
+  		}
+  	}
+  	catch (IOException ex) {
+  		throw new ApplicationContextException("I/O error parsing bean definition source for " + getDisplayName(), ex);
+  	}
+  }
+  ```
+
+
+  - loadBeanDefinitions(beanFactory)
+
+- org.springframework.context.support.AbstractXmlApplicationContext
+
+
+   - loadBeanDefinitions方法
+
+      ```java
+      	@Override
+      	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
+      		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+      		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+      
+      		// Configure the bean definition reader with this context's
+      		// resource loading environment.
+      		beanDefinitionReader.setEnvironment(this.getEnvironment());
+      		beanDefinitionReader.setResourceLoader(this);
+      		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
+      
+      		// Allow a subclass to provide custom initialization of the reader,
+      		// then proceed with actually loading the bean definitions.
+      		initBeanDefinitionReader(beanDefinitionReader);
+      		loadBeanDefinitions(beanDefinitionReader);
+      	}
+      
+      ```
+
+- 一路跟踪下去找到org.springframework.beans.factory.xml.XmlBeanDefinitionReader
+
+   ```java
+       public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+           BeanDefinitionDocumentReader documentReader = this.createBeanDefinitionDocumentReader();
+           int countBefore = this.getRegistry().getBeanDefinitionCount();
+           documentReader.registerBeanDefinitions(doc, this.createReaderContext(resource));
+           return this.getRegistry().getBeanDefinitionCount() - countBefore;
+       }
+   
+       protected BeanDefinitionDocumentReader createBeanDefinitionDocumentReader() {
+           return (BeanDefinitionDocumentReader)BeanUtils.instantiateClass(this.documentReaderClass);
+       }
+   
+       public XmlReaderContext createReaderContext(Resource resource) {
+           return new XmlReaderContext(resource, this.problemReporter, this.eventListener, this.sourceExtractor, this, this.getNamespaceHandlerResolver());
+       }
+   
+       public NamespaceHandlerResolver getNamespaceHandlerResolver() {
+           if (this.namespaceHandlerResolver == null) {
+               this.namespaceHandlerResolver = this.createDefaultNamespaceHandlerResolver();
+           }
+   
+           return this.namespaceHandlerResolver;
+       }
+   
+       protected NamespaceHandlerResolver createDefaultNamespaceHandlerResolver() {
+           ClassLoader cl = this.getResourceLoader() != null ? this.getResourceLoader().getClassLoader() : this.getBeanClassLoader();
+           return new DefaultNamespaceHandlerResolver(cl);
+       }
+   ```
+
+- 源码的META-INF中有这些配置文件,里面的内容和xml中的头部benas 一样
+
+   ![1551791424174](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791424174.png)
+
+   ![1551791486471](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791486471.png)
+
+- 源码中说明了这些文件的使用过程不在细读
+
+![1551791532064](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791532064.png)
+
+![1551791562685](C:\Users\11879\AppData\Roaming\Typora\typora-user-images\1551791562685.png)
 
 ---
 
