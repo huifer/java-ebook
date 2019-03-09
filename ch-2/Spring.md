@@ -1859,3 +1859,4 @@ Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUn
 
   
 
+### org.springframework.jdbc.core.support.JdbcDaoSupport
