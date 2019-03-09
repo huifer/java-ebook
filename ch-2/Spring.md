@@ -1859,4 +1859,181 @@ Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUn
 
   
 
-### org.springframework.jdbc.core.support.JdbcDaoSupport
+### Spring DAO 
+
+#### 简单实现一个借书
+
+- 创建表
+
+```sql
+create table book
+(
+  id     INT NOT NULL AUTO_INCREMENT,
+  bname  varchar(200),
+  belone varchar(200),
+  toname varchar(200),
+  primary key (id)
+
+);
+
+insert book (bname, belone) VALUE ("java Book", "张三");
+insert book (bname, belone) VALUE ("python Book", "张三");
+insert book (bname, belone) VALUE ("c Book", "张三");
+```
+
+- 实体
+
+  ```java
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public class Book {
+      private Integer id;
+      private String bname;
+      private String belone;
+      private String toname;
+  }
+  
+  ```
+
+  
+
+- bookLibDao
+
+  ```java
+  package com.huifer.dao;
+  
+  import org.springframework.jdbc.core.JdbcTemplate;
+  import org.springframework.jdbc.core.RowMapper;
+  import org.springframework.stereotype.Repository;
+  
+  import javax.annotation.Resource;
+  import java.sql.ResultSet;
+  import java.sql.SQLException;
+  import java.util.List;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-03-09
+   */
+  @Repository(value = "bookLibDao")
+  public class BookLibDaoImpl implements BookLibDao {
+      @Resource
+      private JdbcTemplate jdbcTemplate;
+  
+      @Override
+      public void update(String bname, String belone, String to) {
+          int update = jdbcTemplate.update("UPDATE book SET toname=? WHERE belone=? AND bname=?", to, belone, bname);
+  
+      }
+  
+      @Override
+      public List<Book> query() {
+          return jdbcTemplate.query("select * from book", new BookMapper());
+      }
+  }
+  
+  class BookMapper implements RowMapper<Book> {
+      @Override
+      public Book mapRow(ResultSet resultSet, int i) throws SQLException {
+  
+          return
+                  new Book(
+                          resultSet.getInt("id"),
+                          resultSet.getString("bname"),
+                          resultSet.getString("belone"),
+                          resultSet.getString("toname")
+                  );
+      }
+  }
+  ```
+
+  
+
+- bookService
+
+  ```java
+  package com.huifer.dao;
+  
+  import org.springframework.stereotype.Service;
+  
+  import javax.annotation.Resource;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-03-09
+   */
+  @Service(value = "bookService")
+  public class BookServiceImpl implements BookService {
+      @Resource
+      private BookLibDao bookLibDao;
+  
+      @Override
+      public void loanBook(String from, String to, String bname) {
+          bookLibDao.update(bname, from, to);
+  
+      }
+  }
+  
+  ```
+
+  
+
+- 测试用例
+
+  ```java
+  @RunWith(SpringJUnit4ClassRunner.class)
+  @ContextConfiguration(locations = {"classpath:spring_db_config.xml"})
+  public class BookServiceImplTest {
+  
+      @Autowired
+      private BookService bookService;
+  
+      @Autowired
+      private BookLibDao bookLibDao;
+  
+      @Test
+      public void loanBook() {
+          bookService.loanBook("张三", "李四", "java Book");
+          List<Book> query = bookLibDao.query();
+          System.out.println(query);
+      }
+  }
+  ```
+
+- 包扫描别忘记了
+
+  ```xml
+  <context:component-scan base-package="com.huifer.dao"></context:component-scan>
+  ```
+
+- 输出
+
+  ```
+  [Book(id=1, bname=java Book, belone=张三, toname=李四), Book(id=2, bname=python Book, belone=张三, toname=null), Book(id=3, bname=c Book, belone=张三, toname=null)]
+  
+  ```
+
+  
+
+----
+
+### 事务
+
+#### 四大特性
+
+- 原子性
+  - 事务所包含的操作要么全部成功，要么全部失败
+- 一致性
+  - 操作前后保持一致
+  - 案例：A有1000元 给B 500元 ， A剩余500 ， B拥有500 ，前后数据总量都是1000
+
+- 隔离性
+  - 每个事务之间不会互相影响
+  - 案例：多个人同时操作一个表格
+- 持久性
+  - 事务被提交写入数据库或存储到硬盘
