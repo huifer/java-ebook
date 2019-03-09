@@ -1689,5 +1689,66 @@ Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUn
 
 ## spring 事务
 
+### springDriverManagerDataSource
 
+- 利用代码直接填写相关配置后进行数据库操作
+
+```java
+  @Test
+    public void testSelect(){
+
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/dy_java?serverTimezone=UTC&rewriteBatchedStatements=true&useUnicode=true&characterEncoding=utf8");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.update("insert  into dept value (null,?,?) ", "oc", "afkj");
+        System.out.println();
+    }
+```
+
+
+
+### spring-config配置datasource
+
+```xml
+<!--dataSource-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/dy_java?serverTimezone=UTC&amp;rewriteBatchedStatements=true&amp;useUnicode=true&amp;characterEncoding=utf8"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+    <!--jdbcTemplate-->
+    <bean id="temp" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg name="dataSource" ref="dataSource"></constructor-arg>
+    </bean>
+
+```
+
+- 此时只需要将jdbctemplate注入到需要使用的地方即可
+
+```java
+   @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Test
+    public void testJdbcTemplate(){
+        jdbcTemplate.update("insert  into dept value (null,?,?) ", "oc", "afkj");
+        System.out.println();
+    }
+```
+
+下面看jdbcTemplate的属性
+
+![1552134353403](assets/1552134353403.png)
+
+- 使用场景
+  - 数据库迁移
+  - 简单数据库操作
+  - 操作性能比ORM框架高
 
