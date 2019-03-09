@@ -1752,3 +1752,110 @@ Caused by: java.lang.IllegalStateException: SpringJUnit4ClassRunner requires JUn
   - 简单数据库操作
   - 操作性能比ORM框架高
 
+### 数据库连接池
+
+- c3p0
+
+- druid
+
+- dbcp 
+
+  在https://mvnrepository.com/ 查看了一下 DBCP用的人多一些所以选择了dbcp ， 其他数据库连接池使用方式类似，**druid对于数据分析，拓展模块，监控** 由很强的支持，根据场景不同选择吧。
+
+
+
+#### 基础参数
+
+|              | DBCP            | C3P0               | DRUID           |
+| ------------ | --------------- | ------------------ | --------------- |
+| 用户名       | username        | user               | username        |
+| 密码         | password        | password           | password        |
+| 驱动         | driverClassName | driverClass        | driverClassName |
+| url          | url             | jdbcurl            | jdbcurl         |
+| 最小连接数   | minIdle(0)      | minPoolSize(3)     | minIdle(0)      |
+| 初始化连接数 | initialSize(0)  | initialPoolSize(3) | initialSize(0)  |
+| 最大连接时间 | maxActive(8)    | maxPoolSize(15)    | maxTotal(8)     |
+| 最大等待时间 | maxWait(毫秒)   | maxIdleTime(0秒)   | maxWait(毫秒)   |
+
+#### DBCP 使用
+
+- 依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/commons-dbcp/commons-dbcp -->
+<dependency>
+    <groupId>commons-dbcp</groupId>
+    <artifactId>commons-dbcp</artifactId>
+    <version>1.4</version>
+</dependency>
+
+```
+
+- spring配置
+
+  ```xml
+   <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+          <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+          <property name="url"
+                    value="jdbc:mysql://localhost:3306/dy_java?serverTimezone=UTC&amp;rewriteBatchedStatements=true&amp;useUnicode=true&amp;characterEncoding=utf8"/>
+          <property name="username" value="root"/>
+          <property name="password" value="root"/>
+          <property name="initialSize" value="10"/>
+          <property name="minIdle" value="3"/>
+          <property name="maxActive" value="10"/>
+          <property name="maxWait" value="30"/>
+      </bean>
+  
+  
+      <!--jdbcTemplate-->
+      <bean id="temp" class="org.springframework.jdbc.core.JdbcTemplate">
+          <constructor-arg name="dataSource" ref="dataSource"></constructor-arg>
+      </bean>
+  
+  ```
+
+  
+
+- select 查询
+
+  ```java
+  @Data
+  @NoArgsConstructor
+  public class Dept {
+  	// 数据库实体
+      private Integer id;
+      private String dname;
+      private String loc;
+  }
+  
+  
+  class RowMapperTest implements RowMapper {
+      // 数据库查询后返回的内容用resultSet做成实体
+      @Override
+      public Dept mapRow(ResultSet resultSet, int i) throws SQLException {
+          Dept d = new Dept();
+          d.setId(resultSet.getInt("id"));
+          d.setDname(resultSet.getString("dname"));
+          d.setLoc(resultSet.getString("loc"));
+  
+          return d;
+      }
+  }
+      @Test
+      public void testJdbcTemplateSelect(){
+          // 测试方法
+          List<Dept> maps = jdbcTemplate.query("select * from dept", new RowMapperTest());
+          System.out.println(maps);
+      }
+  
+  ```
+
+- 运行结果
+
+  ```
+  [Dept(id=1, dname=技术部, loc=oc), Dept(id=2, dname=设计部, loc=oc), Dept(id=3, dname=办公室, loc=oc), Dept(id=4, dname=c部门, loc=oc), Dept(id=5, dname=oc, loc=afkj), Dept(id=6, dname=oc, loc=afkj), Dept(id=7, dname=oc, loc=afkj)]
+  
+  ```
+
+  
+
