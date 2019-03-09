@@ -2035,5 +2035,59 @@ insert book (bname, belone) VALUE ("c Book", "张三");
 - 隔离性
   - 每个事务之间不会互相影响
   - 案例：多个人同时操作一个表格
+  - 问题
+    - 脏读
+      - 一个事务读取到了另一个事务**未提交的数据**
+    - 不可重复读
+      - 一个事务读取到了另一个事务**已经提交的数据** ，导致**对同一条数据读取2次或以上**， **update操作**
+    - 幻读
+      - 一个事务读取到了另一个事务**已经提交的数据** ，**导致对同一张表格读取两次或以上** ， **insert 和 delete 操作**
 - 持久性
   - 事务被提交写入数据库或存储到硬盘
+
+#### 隔离级别(从低到高)
+
+1. read uncommitted ：**读为未提交**，没有实际用途
+2. read committed ：**读已提交**，避免脏读 
+3. repeatable read：**可重复度**，避免脏读、不可重复度 ，常用
+4. serializable ：**串行化**，避免脏读、不可重复度、幻读 ，新能最差
+
+
+
+#### xml方式的事务配置
+
+```xml
+  <!--事务 aspect 配置形式-->
+    <!--class 根据不同的orm进行选择-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!--事务通知-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <!--设置事务管理信息-->
+        <tx:attributes>
+            <!--增删改 用REQUIRED-->
+            <tx:method name="loanBook*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* *..*.*ServiceImpl.*(..))"/>
+    </aop:config>
+
+```
+
+我们主要关注 设置事务管理信息 中的配置即可
+
+#### 注解方式的事务
+
+- 在目标类或者目标方法上添加 @transcational
+
+  开启事务注解
+
+  ```xml
+      <!--事务注解-->
+      <tx:annotation-driven transaction-manager="transactionManager"/>
+  
+  ```
+
+  
