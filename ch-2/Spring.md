@@ -2316,6 +2316,8 @@ insert book (bname, belone) VALUE ("c Book", "张三");
 
 ## spring + mybatis 整合
 
+[github 仓库](https://github.com/wt1187982580/javaBook-src/tree/master/springmybatisintegration)
+
 ### 实现
 
 - 依赖
@@ -2431,6 +2433,15 @@ insert book (bname, belone) VALUE ("c Book", "张三");
   
   
       <build>
+          <resources>
+              <!--千千万万别忘记-->
+              <resource>
+                  <directory>src/main/java</directory>
+                  <includes>
+                      <include>**/*.xml</include>
+                  </includes>
+              </resource>
+          </resources>
           <plugins>
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
@@ -2502,12 +2513,133 @@ insert book (bname, belone) VALUE ("c Book", "张三");
   - 业务层
 
     ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:p="http://www.springframework.org/schema/p"
+           xmlns:c="http://www.springframework.org/schema/c"
+           xmlns:context="http://www.springframework.org/schema/context"
+           xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+           xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+    >
+        <context:component-scan base-package="com.huifer.springmybatis.service"></context:component-scan>
     
+        <!--spring 业务层-->
+        <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+            <property name="dataSource" ref="dataSource"/>
+        </bean>
+        <tx:advice id="txAdvice" transaction-manager="transactionManager">
+            <tx:attributes>
+                <tx:method name="transfer*" propagation="REQUIRED"/>
+            </tx:attributes>
+        </tx:advice>
+        <aop:config>
+            <aop:advisor advice-ref="txAdvice" pointcut="execution(* *..*.*ServiceImpl.*(..))"/>
+        </aop:config>
+    
+    
+    
+    
+    </beans>
     ```
 
-    
+- 具体实现一个转账
 
-### 测试
+- 数据表创建
+
+  ```SQL
+  create table account
+  (
+    id    int(11) not null auto_increment,
+    money double,
+    name  varchar(20),
+    primary key (id)
+  );
+  
+  insert into account (money, name)
+  values (1000 , "张三");
+  insert into account (money, name)
+  values (500, "李四");
+  
+  select *
+  from account;
+  
+  ```
+
+  
+
+  ```XML
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+          PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.huifer.springmybatis.mapper.AccountMapper">
+      <!-- 查询 -->
+      <select id="queryMoney" parameterType="string" resultType="double">
+  		SELECT money FROM account WHERE name = #{name}
+  	</select>
+  
+      <!-- 修改 -->
+      <update id="update" parameterType="map">
+  		UPDATE account SET money = #{money} WHERE name = #{name}
+  	</update>
+  </mapper>
+  ```
+
+- 转账逻辑
+
+  ```JAVA
+  package com.huifer.springmybatis.service;
+  
+  import com.huifer.springmybatis.mapper.AccountMapper;
+  import org.springframework.stereotype.Service;
+  
+  import javax.annotation.Resource;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-03-10
+   */
+  @Service(value = "accountService")
+  public class AccountServiceImpl implements AccountService {
+      @Resource
+      private AccountMapper mapper;
+      @Override
+      public void transfer(String from, String to, double money) {
+          double fromMoney = mapper.queryMoney(from);
+          mapper.update(from, fromMoney - money);
+          double toMoney = mapper.queryMoney(to);
+          mapper.update(to, toMoney + money);
+      }
+  }
+  
+  ```
+
+-  测试
+
+  ```
+  @RunWith(SpringJUnit4ClassRunner.class)
+  @ContextConfiguration(locations = "classpath:spring/spring_*.xml")
+  public class AccountServiceImplTest {
+      @Resource
+      private AccountService accountService;
+  
+      @Test
+      public void testTransfer() {
+          accountService.transfer("张三", "李四", 100);
+      }
+  
+  
+  }
+  ```
 
 
 
+![1552185562757](assets/1552185562757.png)
