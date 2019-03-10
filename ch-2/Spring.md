@@ -2318,7 +2318,194 @@ insert book (bname, belone) VALUE ("c Book", "张三");
 
 ### 实现
 
+- 依赖
 
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <modelVersion>4.0.0</modelVersion>
+  
+      <groupId>com.huifer</groupId>
+      <artifactId>spring-mybatis-integration</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <properties>
+          <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+          <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+          <java.version>1.8</java.version>
+          <spring.version>5.1.5.RELEASE</spring.version>
+          <mybatis.version>3.5.0</mybatis.version>
+          <mybatis-spring.version>2.0.0</mybatis-spring.version>
+          <mysql.version>8.0.15</mysql.version>
+          <dbcp.version>1.4</dbcp.version>
+          <junit.version>4.12</junit.version>
+      </properties>
+  
+  
+      <dependencies>
+  
+          <!--mysql驱动-->
+          <dependency>
+              <groupId>mysql</groupId>
+              <artifactId>mysql-connector-java</artifactId>
+              <version>${mysql.version}</version>
+          </dependency>
+          <!--dbcp 连接池-->
+          <dependency>
+              <groupId>commons-dbcp</groupId>
+              <artifactId>commons-dbcp</artifactId>
+              <version>${dbcp.version}</version>
+          </dependency>
+          <!--mybatis-->
+          <dependency>
+              <groupId>org.mybatis</groupId>
+              <artifactId>mybatis</artifactId>
+              <version>${mybatis.version}</version>
+          </dependency>
+          <!--mybatis-spring-->
+          <dependency>
+              <groupId>org.mybatis</groupId>
+              <artifactId>mybatis-spring</artifactId>
+              <version>${mybatis-spring.version}</version>
+          </dependency>
+          <!--spring-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-beans</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-core</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-context</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-expression</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <!--spring 事务-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-tx</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <!--spring - jdbc -->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-jdbc</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <!--aop-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-aspects</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>aopalliance</groupId>
+              <artifactId>aopalliance</artifactId>
+              <version>1.0</version>
+          </dependency>
+          <!--单元测试-->
+          <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <version>${junit.version}</version>
+          </dependency>
+          <!--spring test-->
+          <dependency>
+              <groupId>org.springframework</groupId>
+              <artifactId>spring-test</artifactId>
+              <version>${spring.version}</version>
+          </dependency>
+  
+  
+      </dependencies>
+  
+  
+      <build>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <configuration>
+                      <source>1.8</source>
+                      <target>1.8</target>
+                      <encoding>UTF-8</encoding>
+                  </configuration>
+              </plugin>
+          </plugins>
+      </build>
+  
+  </project>
+  ```
+
+- 配置
+
+  - 基础层
+
+    ```properties
+    db.driver=com.mysql.cj.jdbc.Driver
+    db.url=jdbc:mysql://localhost:3306/dy_java?serverTimezone=UTC&amp;rewriteBatchedStatements=true&amp;useUnicode=true&amp;characterEncoding=utf8
+    db.username=root
+    db.password=root
+    ```
+
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:p="http://www.springframework.org/schema/p"
+           xmlns:c="http://www.springframework.org/schema/c"
+           xmlns:context="http://www.springframework.org/schema/context"
+           xmlns:aop="http://www.springframework.org/schema/aop"
+           xsi:schemaLocation=" http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop.xsd"
+    >
+        <context:property-placeholder location="db.properties"/>
+        <!--配置数据源-->
+        <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+            <property name="driverClassName" value="${db.driver}"/>
+            <property name="url" value="${db.url}"/>
+            <property name="username" value="${db.username}"/>
+            <property name="password" value="${db.password}"/>
+        </bean>
+        <!--sqlSessionFactory-->
+        <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+            <!--datasource-->
+            <property name="dataSource" ref="dataSource"/>
+            <property name="typeAliasesPackage" value="com.huifer.springmybatis.pojo"/>
+        </bean>
+    
+        <!--mapper scanner config-->
+        <!--批量代理对象生成-->
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+            <!--需要代理的包名-->
+            <property name="basePackage" value="com.huifer.springmybatis.mapper"/>
+        </bean>
+    
+    
+    </beans>
+    ```
+
+  - 业务层
+
+    ```xml
+    
+    ```
+
+    
 
 ### 测试
 
