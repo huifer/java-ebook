@@ -2297,7 +2297,7 @@ insert book (bname, belone) VALUE ("c Book", "张三");
 
 #### 注解方式的事务
 
-- 在目标类或者目标方法上添加 @transcational
+- 在目标类或者目标方法上添加 @transcational ， 一般给service层
 
   - 类上面加该类所有方法都被这个事务管理
   - 方法上面加只有当前方法被这个事务管理
@@ -2311,4 +2311,3 @@ insert book (bname, belone) VALUE ("c Book", "张三");
   ```
 
   
-
