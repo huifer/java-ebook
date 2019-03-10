@@ -2299,6 +2299,9 @@ insert book (bname, belone) VALUE ("c Book", "张三");
 
 - 在目标类或者目标方法上添加 @transcational
 
+  - 类上面加该类所有方法都被这个事务管理
+  - 方法上面加只有当前方法被这个事务管理
+
   开启事务注解
 
   ```xml
@@ -2308,3 +2311,4 @@ insert book (bname, belone) VALUE ("c Book", "张三");
   ```
 
   
+
