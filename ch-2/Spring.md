@@ -2078,6 +2078,223 @@ insert book (bname, belone) VALUE ("c Book", "张三");
 
 我们主要关注 设置事务管理信息 中的配置即可
 
+##### 源码
+
+根据之前看 aop 经验找到tx:advice ，对应的解析类org.springframework.transaction.config.TxNamespaceHandler
+
+- 入口
+
+![1552177948662](assets/1552177948662.png)
+
+- registerBeanDefinition 注册beanDefinition
+
+  - org.springframework.beans.factory.xml.AbstractBeanDefinitionParser
+
+  ![1552178342586](assets/1552178342586.png)
+
+- tx标签解析
+
+  - org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser
+
+    ![1552178565924](assets/1552178565924.png)
+
+  - element是tx标签或者其他标签
+
+  - ```java
+    Class<?> beanClass = this.getBeanClass(element);
+    ```
+
+    这段将bean class中的内容反射成类
+
+  - ```java
+    this.doParse(element, parserContext, builder);
+    ```
+
+    这段将tx下属标签具体解析
+
+    
+
+- org.springframework.transaction.config.TxAdviceBeanDefinitionParser tx下属标签解析
+
+  ![1552178856695](assets/1552178856695.png)
+
+  ```java
+  protected Class<?> getBeanClass(Element element) {
+      return TransactionInterceptor.class;
+  }
+  ```
+
+- org.springframework.transaction.interceptor.TransactionInterceptor类是tx:advice的解析器
+
+  - implements MethodInterceptor 实现了环绕通知
+  - return this.invokeWithinTransaction(var10001, targetClass, invocation::proceed); AOP的实现和**事务创建信息有关**
+
+  ![1552179135823](assets/1552179135823.png)
+
+- 事务开启 TransactionInterceptor的父类org.springframework.transaction.interceptor.TransactionAspectSupport
+
+  ![1552179514891](assets/1552179514891.png)
+
+  ```java
+  // 开启事务 txInfo中有事务的信息
+  TransactionAspectSupport.TransactionInfo txInfo = this.createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
+  
+  result = null;
+  
+  try {
+      result = invocation.proceedWithInvocation();
+  } catch (Throwable var17) {
+    //  回滚事务
+      this.completeTransactionAfterThrowing(txInfo, var17);
+      throw var17;
+  } finally {
+      // 清空事务
+      this.cleanupTransactionInfo(txInfo);
+  }
+  // 提交事务
+  this.commitTransactionAfterReturning(txInfo);
+  return result;
+  ```
+
+  ![1552179608999](assets/1552179608999.png)
+
+- createTransactionIfNecessary创建事务
+
+  ```java
+  protected TransactionAspectSupport.TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm, @Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
+      if (txAttr != null && ((TransactionAttribute)txAttr).getName() == null) {
+          txAttr = new DelegatingTransactionAttribute((TransactionAttribute)txAttr) {
+              public String getName() {
+                  return joinpointIdentification;
+              }
+          };
+      }
+  
+      TransactionStatus status = null;
+      if (txAttr != null) {
+          if (tm != null) {
+              // 获取具体开启的事务
+              status = tm.getTransaction((TransactionDefinition)txAttr);
+          } else if (this.logger.isDebugEnabled()) {
+              this.logger.debug("Skipping transactional joinpoint [" + joinpointIdentification + "] because no transaction manager has been configured");
+          }
+      }
+  
+      return this.prepareTransactionInfo(tm, (TransactionAttribute)txAttr, joinpointIdentification, status);
+  }
+  ```
+
+- 获取开启事务
+
+  - getTransaction方法在org.springframework.transaction.support.AbstractPlatformTransactionManager
+
+    ```java
+        public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException {
+            Object transaction = this.doGetTransaction();
+            boolean debugEnabled = this.logger.isDebugEnabled();
+            if (definition == null) {
+                definition = new DefaultTransactionDefinition();
+            }
+    
+            if (this.isExistingTransaction(transaction)) {
+                return this.handleExistingTransaction((TransactionDefinition)definition, transaction, debugEnabled);
+            } else if (((TransactionDefinition)definition).getTimeout() < -1) {
+                throw new InvalidTimeoutException("Invalid transaction timeout", ((TransactionDefinition)definition).getTimeout());
+            } else if (((TransactionDefinition)definition).getPropagationBehavior() == 2) {
+                throw new IllegalTransactionStateException("No existing transaction found for transaction marked with propagation 'mandatory'");
+            } else if (((TransactionDefinition)definition).getPropagationBehavior() != 0 && ((TransactionDefinition)definition).getPropagationBehavior() != 3 && ((TransactionDefinition)definition).getPropagationBehavior() != 6) {
+                if (((TransactionDefinition)definition).getIsolationLevel() != -1 && this.logger.isWarnEnabled()) {
+                    this.logger.warn("Custom isolation level specified but no actual transaction initiated; isolation level will effectively be ignored: " + definition);
+                }
+    
+                boolean newSynchronization = this.getTransactionSynchronization() == 0;
+                return this.prepareTransactionStatus((TransactionDefinition)definition, (Object)null, true, newSynchronization, debugEnabled, (Object)null);
+            } else {
+                AbstractPlatformTransactionManager.SuspendedResourcesHolder suspendedResources = this.suspend((Object)null);
+                if (debugEnabled) {
+                    this.logger.debug("Creating new transaction with name [" + ((TransactionDefinition)definition).getName() + "]: " + definition);
+                }
+    
+                try {
+                    boolean newSynchronization = this.getTransactionSynchronization() != 2;
+                    DefaultTransactionStatus status = this.newTransactionStatus((TransactionDefinition)definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
+                  // 开启事务
+                    this.doBegin(transaction, (TransactionDefinition)definition);
+                    this.prepareSynchronization(status, (TransactionDefinition)definition);
+                    return status;
+                } catch (Error | RuntimeException var7) {
+                    this.resume((Object)null, suspendedResources);
+                    throw var7;
+                }
+            }
+        }
+    ```
+
+    
+
+  - 根据之前配置的内容中
+
+  ```xml
+  <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+      <property name="dataSource" ref="dataSource"/>
+  </bean>
+  ```
+
+   直接看DataSourceTransactionManager类 **DataSourceTransactionManager 是继承AbstractPlatformTransactionManager** 所以有doBegin方法
+
+  ```java
+      protected void doBegin(Object transaction, TransactionDefinition definition) {
+          DataSourceTransactionManager.DataSourceTransactionObject txObject = (DataSourceTransactionManager.DataSourceTransactionObject)transaction;
+          Connection con = null;
+  
+          try {
+              if (!txObject.hasConnectionHolder() || txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
+                  Connection newCon = this.obtainDataSource().getConnection();
+                  if (this.logger.isDebugEnabled()) {
+                      this.logger.debug("Acquired Connection [" + newCon + "] for JDBC transaction");
+                  }
+  
+                  txObject.setConnectionHolder(new ConnectionHolder(newCon), true);
+              }
+  
+              txObject.getConnectionHolder().setSynchronizedWithTransaction(true);
+              con = txObject.getConnectionHolder().getConnection();
+              Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);
+              txObject.setPreviousIsolationLevel(previousIsolationLevel);
+              if (con.getAutoCommit()) {
+                  txObject.setMustRestoreAutoCommit(true);
+                  if (this.logger.isDebugEnabled()) {
+                      this.logger.debug("Switching JDBC Connection [" + con + "] to manual commit");
+                  }
+  // 手动提交
+                  con.setAutoCommit(false);
+              }
+  
+              this.prepareTransactionalConnection(con, definition);
+              txObject.getConnectionHolder().setTransactionActive(true);
+              int timeout = this.determineTimeout(definition);
+              if (timeout != -1) {
+                  txObject.getConnectionHolder().setTimeoutInSeconds(timeout);
+              }
+  
+              if (txObject.isNewConnectionHolder()) {
+                  TransactionSynchronizationManager.bindResource(this.obtainDataSource(), txObject.getConnectionHolder());
+              }
+  
+          } catch (Throwable var7) {
+              if (txObject.isNewConnectionHolder()) {
+                  DataSourceUtils.releaseConnection(con, this.obtainDataSource());
+                  txObject.setConnectionHolder((ConnectionHolder)null, false);
+              }
+  
+              throw new CannotCreateTransactionException("Could not open JDBC Connection for transaction", var7);
+          }
+      }
+  
+  ```
+
+  
+
 #### 注解方式的事务
 
 - 在目标类或者目标方法上添加 @transcational
