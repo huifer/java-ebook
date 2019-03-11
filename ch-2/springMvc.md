@@ -613,5 +613,7 @@ View->前端控制器\n org.springframework.web.servlet.DispatcherServlet\n 用�
 ## SSM 整合单表操作
 
 - 查询item表格
-- 详细查看仓库
-- 待解决问题 返回json
+
+- 详细查看[【仓库】](https://github.com/wt1187982580/javaBook-src/tree/master/ssm)
+
+  
