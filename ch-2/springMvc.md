@@ -608,3 +608,10 @@ View->前端控制器\n org.springframework.web.servlet.DispatcherServlet\n 用�
 前端控制器\n org.springframework.web.servlet.DispatcherServlet\n 用来接收响应以及返回响应结果 --> 用户:查看到完整的网页
 ```
 
+---
+
+## SSM 整合单表操作
+
+- 查询item表格
+- 详细查看仓库
+- 待解决问题 返回json
