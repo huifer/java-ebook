@@ -1,4 +1,4 @@
-# SpringMvc
+#  SpringMvc
 
 [【源码仓库】](https://github.com/wt1187982580/javaBook-src/tree/master/mySpringMvcBook)
 
@@ -710,3 +710,101 @@ public ResponseEntity query(Integer id, String name) {
   ```
 
 ![1552475877836](assets/1552475877836.png)
+
+
+
+
+
+## 异常
+
+### 编译时异常
+
+- 编译不通过，直接处理 ，用try  ， throws处理 
+- 继承Exception 
+
+### 运行时异常
+
+- 空指针， 数组越界
+  - 大量数据测试
+
+- 继承RunTimeException
+
+
+
+### SpringMvc 异常处理器HandlerExceptionResolver
+
+- 制作一个ExceptionResolve
+
+```java
+public class MyExcetionResolver implements HandlerExceptionResolver {
+    @Override
+    public ModelAndView resolveException(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, Exception e) {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("/jsp/OC/error.jsp");
+        return modelAndView;
+    }
+}
+```
+
+- 增加一个spring-mvc配置，将自定义的ExceptionResolve 注入
+
+  ```xml
+  <bean class="com.huifer.ssm.exception.MyExceptionResolver"></bean>
+  ```
+
+
+
+## Spring-Mvc 上传
+
+- 依赖
+
+  ```xml
+      <!--文件上传-->
+          <dependency>
+              <groupId>commons-fileupload</groupId>
+              <artifactId>commons-fileupload</artifactId>
+              <version>1.4</version>
+          </dependency> 
+  ```
+
+- org.springframework.web.servlet.DispatcherServlet  
+
+ ```java
+  public static final String MULTIPART_RESOLVER_BEAN_NAME = "multipartResolver";
+ ```
+
+
+
+- java 代码编写
+
+  ```java
+   @PostMapping("file")
+      public void file(MultipartFile picFile) throws IOException {
+          if (picFile != null) {
+              // 保存到本地
+              String uploadFile = picFile.getOriginalFilename();
+              if (uploadFile != null && !"".contentEquals(uploadFile)) {
+                  String ext = uploadFile.substring(uploadFile.lastIndexOf("."));
+                  String bf = UUID.randomUUID().toString() + ext;
+                  String baseDir = "E:\\work-java\\2019-java\\ssm\\upload\\";
+                  File dirFile = new File(baseDir);
+                  if (!dirFile.exists()) {
+                      dirFile.mkdir();
+                  }
+                  picFile.transferTo(new File(baseDir + bf));
+  
+              }
+  
+          }
+          return;
+      }
+  ```
+
+  ![1552483541192](assets/1552483541192.png)
+
+![1552483551629](assets/1552483551629.png)
+
+**上传成功**
+
+---
+
