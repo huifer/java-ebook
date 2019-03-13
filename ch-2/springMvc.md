@@ -616,4 +616,97 @@ View->前端控制器\n org.springframework.web.servlet.DispatcherServlet\n 用�
 
 - 详细查看[【仓库】](https://github.com/wt1187982580/javaBook-src/tree/master/ssm)
 
+- **注：本项目全部返回json**
+
+### 请求参数绑定
+
+
+
+- 请求参数格式为**k/v**
+- 请求参数数据类型都是**字符串类型**
+
+- 绑定的目标类型
+  - controller中的形式参数
+  - 简单类型
+  - pojo类型
+  - 集合类型
+- spring-mvc内置解析组件 
+
+### servlet API
+
+- HttpServletRequest
+
+- HttpServletResponse
+
+- HttpSession
+
+### 简单类型
+
+key 和controller方法形式参数**名称一致**
+
+http://localhost:8082/item/query?id=1&name=%E7%8E%8B
+
+```java
+@GetMapping("query")
+public ResponseEntity query(Integer id, String name) {
+    HashMap<Integer, String> has = new HashMap<>();
+    has.put(id, name);
+    return ResponseEntity.ok(has);
+
+}
+```
+
+![1552474408436](assets/1552474408436.png)
+
+- 注解绑定
+
+- http://localhost:8082/item/query?id=3
+
+- ```java
   
+      @GetMapping("query")
+  // required 是否必填， defaultValue = 默认值
+      public ResponseEntity query(Integer id, @RequestParam(value = "name", required = false, defaultValue = 默认值 = "awsl") String name) {
+          HashMap<Integer, String> has = new HashMap<>();
+          has.put(id, name);
+          return ResponseEntity.ok(has);
+  
+      }
+  ```
+
+### POJO类型
+
+- http://localhost:8082/item/pojo?id=3&name=lkjl
+
+- ```java
+  @GetMapping("pojo")
+  public ResponseEntity queryPojo(Integer id, String name, Item item) {
+      return ResponseEntity.ok(item);
+  
+  }
+  ```
+
+  ![1552475091174](assets/1552475091174.png)
+
+- 同名接收参数方法
+
+  - http://localhost:8082/item/tm?item.id=1&item.name=abc&user.id=3&user.name=lkjljljlk
+
+  - 利用搜索类 QueryModel 来进行类的包装 ，url 里面用类属性.具体属性的方式编写
+  - ![1552475626315](assets/1552475626315.png)
+
+
+
+### 数组类型
+
+- http://localhost:8082/item/double?id=1&id=2
+
+- ```java
+  @GetMapping("double")
+  public ResponseEntity array(String[] id) {
+  //http://localhost:8082/item/double?id=1&id=2
+      return ResponseEntity.ok(id);
+  }
+  ```
+
+![1552475877836](assets/1552475877836.png)
