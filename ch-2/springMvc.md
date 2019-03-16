@@ -1132,7 +1132,7 @@ db.password=root
           Class<?> handlerType = handler instanceof String ? this.obtainApplicationContext().getType((String)handler) : handler.getClass();
           if (handlerType != null) {
               Class<?> userType = ClassUtils.getUserClass(handlerType);
-              // 带有controller注解的方法过滤 method：
+              // 带有controller注解的方法过滤 method： RequestMappingInfo
               Map<Method, T> methods = MethodIntrospector.selectMethods(userType, (method) -> {
                   try {
                       return this.getMappingForMethod(method, userType);
@@ -1146,6 +1146,7 @@ db.password=root
       
               methods.forEach((method, mapping) -> {
                   Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+                  // handler , methrod mappinginfo 关系创建
                   this.registerHandlerMethod(handler, invocableMethod, mapping);
               });
           }
@@ -1159,3 +1160,109 @@ db.password=root
   - 
 
 ### 处理
+
+处理请求跟web.xml中的前端控制器有关DispatcherServlet
+
+```java
+ <servlet>
+        <servlet-name>ssm</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring/spring_mvc.xml</param-value>
+        </init-param>
+        <!--跟随tomcat启动-->
+        <load-on-startup>2</load-on-startup>
+
+    </servlet>
+```
+
+
+
+- getHandler方法
+
+  ```java
+  @Nullable
+      protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+          if (this.handlerMappings != null) {
+              Iterator var2 = this.handlerMappings.iterator();
+  
+              while(var2.hasNext()) {
+                  HandlerMapping mapping = (HandlerMapping)var2.next();
+                  // 获取handler方法
+                  HandlerExecutionChain handler = mapping.getHandler(request);
+                  if (handler != null) {
+                      return handler;
+                  }
+              }
+          }
+  
+          return null;
+      }
+  ```
+
+- org.springframework.web.servlet.handler.AbstractHandlerMapping
+
+  ```java
+      @Nullable
+      public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+          Object handler = this.getHandlerInternal(request);
+          if (handler == null) {
+              handler = this.getDefaultHandler();
+          }
+  
+          if (handler == null) {
+              return null;
+          } else {
+              if (handler instanceof String) {
+                  String handlerName = (String)handler;
+           
+                  handler = this.obtainApplicationContext().getBean(handlerName);
+              }
+  // 具体执行对象 HandlerExecutionChain
+              HandlerExecutionChain executionChain = this.getHandlerExecutionChain(handler, request);
+              if (this.logger.isTraceEnabled()) {
+                  this.logger.trace("Mapped to " + handler);
+              } else if (this.logger.isDebugEnabled() && !request.getDispatcherType().equals(DispatcherType.ASYNC)) {
+                  this.logger.debug("Mapped to " + executionChain.getHandler());
+              }
+  
+              if (CorsUtils.isCorsRequest(request)) {
+                  CorsConfiguration globalConfig = this.corsConfigurationSource.getCorsConfiguration(request);
+                  CorsConfiguration handlerConfig = this.getCorsConfiguration(handler, request);
+                  CorsConfiguration config = globalConfig != null ? globalConfig.combine(handlerConfig) : handlerConfig;
+                  executionChain = this.getCorsHandlerExecutionChain(request, executionChain, config);
+              }
+  
+              return executionChain;
+          }
+      }
+  
+  ```
+
+  ```java
+  protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+      HandlerExecutionChain chain = handler instanceof HandlerExecutionChain ? (HandlerExecutionChain)handler : new HandlerExecutionChain(handler);
+     	// 请求的url
+      String lookupPath = this.urlPathHelper.getLookupPathForRequest(request);
+      Iterator var5 = this.adaptedInterceptors.iterator();
+  // 添加具体的controller类下面的方法，以及拦截器
+      while(var5.hasNext()) {
+          HandlerInterceptor interceptor = (HandlerInterceptor)var5.next();
+          if (interceptor instanceof MappedInterceptor) {
+              MappedInterceptor mappedInterceptor = (MappedInterceptor)interceptor;
+              if (mappedInterceptor.matches(lookupPath, this.pathMatcher)) {
+                  chain.addInterceptor(mappedInterceptor.getInterceptor());
+              }
+          } else {
+              chain.addInterceptor(interceptor);
+          }
+      }
+  
+      return chain;
+  }
+  ```
+
+  ![1552714945338](assets/1552714945338.png)
+
+## 
