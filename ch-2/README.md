@@ -10,5 +10,5 @@ javaWeb开发框架
 6. [mybatis](/ch-2/MyBatis.md)
 7. [Spring](/ch-2/Spring.md)
 8. [Spring 相关问题](/ch-2/Spring相关问题.md)
-9. [springMvc]((/ch-2/springMvc.md))
-
+9. [springMvc](/ch-2/springMvc.md)
+10. [redis]((/ch-2/redis.md))
