@@ -1022,3 +1022,140 @@ public class MyHandlerInt implements HandlerInterceptor {
 
 ---
 
+## 源码阅读
+
+### 问题1 :spring 如何将外部文件properties对应填充到value中
+
+```properties
+db.driver=com.mysql.cj.jdbc.Driver
+db.url=jdbc:mysql://localhost:3306/dy_java?serverTimezone=UTC&rewriteBatchedStatements=true&useUnicode=true&characterEncoding=utf8
+db.username=root
+db.password=root
+```
+
+```xml
+<context:property-placeholder location="classpath:db.properties"/>
+<!--配置数据源-->
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName" value="${db.driver}"/>
+    <property name="url" value="${db.url}"/>
+    <property name="username" value="${db.username}"/>
+    <property name="password" value="${db.password}"/>
+</bean>
+```
+
+- 根据之前的阅读可以知道 在spring中有org.springframework.context.config.ContextNamespaceHandler 这个类可以来解析xml标签的内容
+
+- 进入ContextNamespaceHandler  可以看到字符串标识 property-placeholder
+
+  ![1552708428602](assets/1552708428602.png)
+
+- org.springframework.context.config.PropertyPlaceholderBeanDefinitionParser 类中的doParse方法
+
+  ![1552708482436](assets/1552708482436.png)
+
+- 进入 org.springframework.context.config.AbstractPropertyLoadingBeanDefinitionParser 具体查看doParse()方法
+
+  - location获取
+  - ![1552708614174](assets/1552708614174.png)
+
+  ![1552709141841](assets/1552709141841.png)
+
+  
+
+- 找到具体的 bean初始化 org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory 目前还是没有内容填写的
+
+  - ![1552709495576](assets/1552709495576.png)
+
+- 接下来的读取properties 以及bean属性赋值 就和springDI相关。
+
+### 问题2 :**RequestMappingHandlerMapping** 注解RequestMapping
+
+#### 注册
+
+- org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter 
+
+  - initHandlerMethods
+
+    - ```java
+      // 用来初始化handler方法
+      protected void initHandlerMethods() {
+          String[] var1 = this.getCandidateBeanNames();
+          int var2 = var1.length;
+      
+          for(int var3 = 0; var3 < var2; ++var3) {
+              String beanName = var1[var3];
+              if (!beanName.startsWith("scopedTarget.")) {
+                  this.processCandidateBean(beanName);
+              }
+          }
+      
+          this.handlerMethodsInitialized(this.getHandlerMethods());
+      }
+      ```
+
+  - processCandidateBean
+
+    - ```JAVA
+      // 过滤不是handler的方法 
+      protected void processCandidateBean(String beanName) {
+          Class beanType = null;
+      
+          try {
+              // 获取bean的类型
+              beanType = this.obtainApplicationContext().getType(beanName);
+          } catch (Throwable var4) {
+              if (this.logger.isTraceEnabled()) {
+                  this.logger.trace("Could not resolve type for bean '" + beanName + "'", var4);
+              }
+          }
+      
+          // 判断是不是handler 
+          if (beanType != null && this.isHandler(beanType)) {
+              this.detectHandlerMethods(beanName);
+          }
+      
+      }
+      ```
+
+    - ```java
+      protected boolean isHandler(Class<?> beanType) {
+          return AnnotatedElementUtils.hasAnnotation(beanType, Controller.class) || AnnotatedElementUtils.hasAnnotation(beanType, RequestMapping.class);
+      }
+      ```
+
+  - detectHandlerMethods
+
+    - ```java
+      // 构造具体的映射关系
+      protected void detectHandlerMethods(Object handler) {
+          Class<?> handlerType = handler instanceof String ? this.obtainApplicationContext().getType((String)handler) : handler.getClass();
+          if (handlerType != null) {
+              Class<?> userType = ClassUtils.getUserClass(handlerType);
+              // 带有controller注解的方法过滤 method：
+              Map<Method, T> methods = MethodIntrospector.selectMethods(userType, (method) -> {
+                  try {
+                      return this.getMappingForMethod(method, userType);
+                  } catch (Throwable var4) {
+                      throw new IllegalStateException("Invalid mapping on handler class [" + userType.getName() + "]: " + method, var4);
+                  }
+              });
+              if (this.logger.isTraceEnabled()) {
+                  this.logger.trace(this.formatMappings(userType, methods));
+              }
+      
+              methods.forEach((method, mapping) -> {
+                  Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+                  this.registerHandlerMethod(handler, invocableMethod, mapping);
+              });
+          }
+      
+      }
+      ```
+
+- org.springframework.web.servlet.handler.AbstractHandlerMethodMapping  initHandlerMethods将注解全部注册到handlermapping中
+  - ![1552711323182](assets/1552711323182.png)
+  - ![1552711362365](assets/1552711362365.png)
+  - 
+
+### 处理
