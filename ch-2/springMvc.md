@@ -1,4 +1,4 @@
-#  SpringMvc
+#  	SpringMvc
 
 [【源码仓库】](https://github.com/wt1187982580/javaBook-src/tree/master/mySpringMvcBook)
 
@@ -805,6 +805,220 @@ public class MyExcetionResolver implements HandlerExceptionResolver {
 ![1552483551629](assets/1552483551629.png)
 
 **上传成功**
+
+---
+
+## 拦截器
+
+```java
+package com.huifer.ssm.HandlerIntercepter;
+
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * 描述:
+ *
+ * @author huifer
+ * @date 2019-03-16
+ */
+public class MyHandlerInt implements HandlerInterceptor {
+    /**
+     * 应用场景 ： 登录 ， 授权
+     * @param request
+     * @param response
+     * @param handler
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        return true;
+    }
+
+    /**
+     * 应用场景：对公用数据模型发送给前台
+     * @param request
+     * @param response
+     * @param handler
+     * @param modelAndView
+     * @throws Exception
+     */
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+
+    }
+
+    /**
+     * 应用场景：统一异常处理， 统一日志处理
+     * @param request
+     * @param response
+     * @param handler
+     * @param ex
+     * @throws Exception
+     */
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+
+    }
+}
+
+```
+
+- 拦截器配置
+
+  ```xml
+      <!--拦截器配置-->
+      <mvc:interceptors>
+          <!--全局拦截器配置-->
+          <bean class="com.huifer.ssm.HandlerIntercepter.MyHandlerInt"/>
+          <!--单一拦截器配置-->
+          <mvc:interceptor>
+              <mvc:mapping path="/test/**"/>
+              <bean class="com.huifer.ssm.HandlerIntercepter.MyHandlerInt"/>
+          </mvc:interceptor>
+      </mvc:interceptors>
+  ```
+
+- 拦截器最先写的先被拦截
+
+
+
+
+
+---
+
+## CORS 跨域
+
+- jsonp 不支持 POST请求
+
+- IE>10
+- 响应头：Access-Control-Allow-Origin
+- 请求分类
+  - 简单请求，一下两个条件同时满足
+    - 请求方式属于下列内容
+      - head
+      - get
+      - post
+    - http头信息不超过下列内容
+      - Accept
+      - Accept-Language
+      - Last-Event-Id
+      - Context-language
+      - Content-Type(text/plain,multipart/form-data,application/x-www-form-urlencoded)
+  - 非简单请求
+    - 除了上述简单请求外都是非简单请求
+
+
+
+- Cros拦截器
+
+  ```java
+  package com.huifer.ssm.interceptor;
+  
+  import org.springframework.web.servlet.HandlerInterceptor;
+  
+  import javax.servlet.http.HttpServletRequest;
+  import javax.servlet.http.HttpServletResponse;
+  
+  /**
+   * 描述:
+   *
+   * @author huifer
+   * @date 2019-03-16
+   */
+  public class CrossInter implements HandlerInterceptor {
+      @Override
+      public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+          if (request.getHeader("Origin") != null) {
+              response.setContentType("text/html;charset=UTF-8");
+              // 允许那个url
+              response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+              // 允许的请求方法
+              response.setHeader("Access-Control-Allow-Methods", "POST,GET,DELETE");
+              // 允许请求头参数列表
+              response.setHeader("Access-Control-Allow-Headers",
+                      "Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With,userId,token");
+              // 带 cookie 访问
+              response.setHeader("Access-Control-Allow-Credentials", "true");
+              response.setHeader("XDomainRequestAllowed", "1");
+  
+              System.out.println("CROS doing");
+  
+          }
+          return true;
+      }
+  
+  }
+  
+  ```
+
+- js访问代码
+
+  ```HTML
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Title</title>
+      <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+  </head>
+  <body>
+  <button onclick="ajaxbutton()">ajax</button>
+  <script>
+      function ajaxbutton() {
+          $.ajax({
+              url: "http://localhost:8082/item/queryItem",
+              method: "GET",
+              xhrFields: {withCredentials: true},
+              success: function (data) {
+                  console.log(data);
+              },
+              error: function () {
+                  console.log("error")
+              }
+          })
+  
+      }
+  </script>
+  </body>
+  </html>
+  ```
+
+  
+
+- Cros 没有注入的时候
+
+  ![1552704628521](assets/1552704628521.png)
+
+- 使用jquery ajax访问
+
+  ![1552704665827](assets/1552704665827.png)
+
+  没有办法正常获取数据
+
+- 将cros配置开放
+
+  ```xml
+      <mvc:interceptors>
+          <bean class="com.huifer.ssm.interceptor.CrossInter"/>
+          <!--全局拦截器配置-->
+          <bean class="com.huifer.ssm.interceptor.MyHandlerInt"/>
+          <!--单一拦截器配置-->
+          <mvc:interceptor>
+              <mvc:mapping path="/test/**"/>
+              <bean class="com.huifer.ssm.interceptor.MyHandlerInt"/>
+          </mvc:interceptor>
+      </mvc:interceptors>
+  
+  ```
+
+  就可以正常访问数据了
+
+- ![1552704758284](assets/1552704758284.png)
 
 ---
 
