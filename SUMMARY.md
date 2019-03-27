@@ -16,7 +16,7 @@
   * [springMvc](/ch-2/springMvc.md)
   * [redis](/ch-2/redis.md)
   * [_security_](/ch-2/security.md "security")
-  * mysql
+  * [mysql](/ch-2/mysql.md)
 * [数据通信](/ch-3/README.md)
   * [restful](/ch-3/restfull.md)
   * [RPC](/ch-3/RPC.md)
