@@ -13,6 +13,7 @@ javaWeb开发框架
 9. [springMvc](/ch-2/springMvc.md)
 10. [redis](/ch-2/redis.md)
 11. [security](/ch-2/security.md)
+12. [mysql](/ch-2/mysql.md)
 
 
 
