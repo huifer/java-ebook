@@ -1,6 +1,5 @@
-# Java 技术栈
+# MyBook
 
-java技术栈
 
 [目录](SUMMARY.md)
 
