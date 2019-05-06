@@ -15,7 +15,7 @@
   * [spring](/ch-2/Spring.md)
   * [springMvc](/ch-2/springMvc.md)
   * [redis](/ch-2/redis.md)
-  * [_security_](/ch-2/security.md "security")
+  * [security](/ch-2/security.md "security")
   * [mysql](/ch-2/mysql.md)
 * [数据通信](/ch-3/README.md)
   * [restful](/ch-3/restfull.md)
@@ -27,4 +27,8 @@
 
 - 数据
   - [数据](/ch-4/数据.md)
-
+  - [数据结构](/ch-4/数据结构.md)
+  - [线性表](/ch-4/线性表.md)
+  - [栈与队列](/ch-4/栈与队列.md)
+  - [树](/ch-4/树.md)
+  - [串](/ch-4/串.md)
