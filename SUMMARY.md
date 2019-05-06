@@ -19,7 +19,7 @@
   - [redis](/ch-5/redis.md)
   - [mysql](/ch-5/mysql.md)
 
-- - [数据通信](/ch-3/README.md)
+- [数据通信](/ch-3/README.md)
   - [restful](/ch-3/restfull.md)
   - [RPC](/ch-3/RPC.md)
   - [thrift](/ch-3/thrift.md)
