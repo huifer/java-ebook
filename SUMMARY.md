@@ -1,4 +1,4 @@
-# Summary
+# 目录
 
 * [Introduction](README.md)
 * [Java项目构建](/ch-1/README.md)
@@ -22,9 +22,6 @@
   * [RPC](/ch-3/RPC.md)
   * [thrift](/ch-3/thrift.md)
   * [消息中间件](/ch-3/消息中间件.md)
-
-
-
 - 数据
   - [数据](/ch-4/数据.md)
-
+  - [线性表](/ch-4/线性表.md)
