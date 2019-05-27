@@ -7,7 +7,6 @@
   - [构建工具](/ch-1/构建工具.md)
   - [版本控制](/ch-1/版本控制.md)
   - [代码质量](/ch-1/代码质量.md)
-
 - [Java开发框架](/ch-2/README.md)
   - [依赖注入](/ch-2/依赖注入.md)
   - [对象关系映射](/ch-2/ORM.md)
@@ -18,17 +17,14 @@
   - [spring](/ch-2/Spring.md)
   - [springMvc](/ch-2/springMvc.md)
   - [security](/ch-2/security.md "security")
-
 - 数据库
   - [redis](/ch-5/redis.md)
   - [mysql](/ch-5/mysql.md)
-
 - [数据通信](/ch-3/README.md)
   - [restful](/ch-3/restfull.md)
   - [RPC](/ch-3/RPC.md)
   - [thrift](/ch-3/thrift.md)
   - [消息中间件](/ch-3/消息中间件.md)
-
 - 数据
   - [数据](/ch-4/数据.md)
   - [数据结构](/ch-4/数据结构.md)
@@ -37,6 +33,8 @@
   - [树](/ch-4/树.md)
   - [串](/ch-4/串.md)
   - [设计模式](/ch-4/设计模式.md)
+- java
+  - [基础](ch-6/java基础.md)
 
 ## 阅读
 阅读软件推荐 [Typora](https://www.typora.io/)
